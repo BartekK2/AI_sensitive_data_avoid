@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>sensitive-guard</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <strong>sensitive-guard</strong>
+      <span id="status">sprawdzam API…</span>
+    </header>
+    <label class="row">
+      <input type="checkbox" id="enabled" />
+      Włącz na czatach AI
+    </label>
+    <label class="row">
+      <input type="checkbox" id="blockOnRedact" />
+      Zatrzymuj też PII do redakcji (e-mail, telefon)
+    </label>
+    <label class="row">
+      <input type="checkbox" id="failClosed" />
+      Blokuj, gdy lokalne API nie odpowiada
+    </label>
+    <label>
+      Adres warstwy
+      <input type="url" id="apiUrl" />
+    </label>
+    <label>
+      Próg
+      <input type="number" id="threshold" min="0" max="1" step="0.05" />
+    </label>
+    <p class="hint">
+      Działa na ChatGPT, Claude, Gemini, Copilot, Perplexity, Grok, DeepSeek i innych czatach AI.
+      Najpierw uruchom: <code>python -m sensitive_guard serve</code>
+    </p>
+    <script src="popup.js"></script>
+  </body>
+</html>

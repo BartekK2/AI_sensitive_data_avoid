@@ -1,0 +1,202 @@
+﻿<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mock czat AI · sensitive-guard</title>
+    <link rel="stylesheet" href="/ext/content.css" />
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        font: 16px/1.45 "Segoe UI", system-ui, sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      header, footer { padding: 16px 20px; }
+      header { border-bottom: 1px solid #1e293b; }
+      #log { padding: 20px; white-space: pre-wrap; }
+      footer {
+        display: flex;
+        gap: 8px;
+        border-top: 1px solid #1e293b;
+        background: #020617;
+      }
+      textarea {
+        flex: 1;
+        min-height: 72px;
+        resize: vertical;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        background: #111827;
+        color: inherit;
+      }
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 0 16px;
+        background: #2563eb;
+        color: white;
+        font: inherit;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Mock ChatGPT</strong>
+      — ten sam finder + lokalne API <code>/v1/scan</code>, bez wtyczki.
+      <label style="margin-left:16px">Pracownik
+        <select id="employee"></select>
+      </label>
+    </header>
+    <div id="log">Wpisz PESEL, e-mail albo zwykły tekst i naciśnij Wyślij albo Enter.</div>
+    <footer>
+      <textarea id="prompt-textarea" placeholder="Wiadomość do modelu…"></textarea>
+      <button type="button" data-testid="send-button" aria-label="Send message">Wyślij</button>
+    </footer>
+    <script src="/ext/lib.js"></script>
+    <script>
+      const lib = window.SensitiveGuardLib;
+      const log = document.getElementById("log");
+      const box = document.getElementById("prompt-textarea");
+      const sendBtn = document.querySelector("[data-testid=send-button]");
+      const settings = { blockOnRedact: true };
+      let passThrough = false;
+
+      function deliver(text) {
+        log.textContent += "\n\nWYSŁANO:\n" + text;
+        box.value = "";
+      }
+
+      async function scan(text, record) {
+        const employee = document.getElementById("employee");
+        const response = await fetch("/v1/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            threshold: 0.5,
+            locale: "pl",
+            region: "PL",
+            record: Boolean(record),
+            employee_id: employee && employee.value ? employee.value : null,
+            destination: "chatgpt.com",
+          }),
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      }
+
+      function ensureUi() {
+        let host = document.getElementById("sg-root");
+        if (host) return host;
+        host = document.createElement("div");
+        host.id = "sg-root";
+        host.setAttribute("data-sg-ui", "1");
+        host.innerHTML = `
+          <div class="sg-badge" id="sg-badge">guard · gotowy</div>
+          <div class="sg-modal" id="sg-modal" hidden>
+            <div class="sg-card">
+              <div class="sg-kicker">sensitive-guard · Laya</div>
+              <h2 id="sg-title">Wysyłka wstrzymana</h2>
+              <p id="sg-lead"></p>
+              <ul id="sg-entities"></ul>
+              <pre id="sg-redacted"></pre>
+              <div class="sg-actions">
+                <button type="button" id="sg-cancel">Zostaw</button>
+                <button type="button" id="sg-redact">Wyślij zredagowane</button>
+                <button type="button" class="sg-danger" id="sg-anyway">Wyślij mimo to</button>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(host);
+        host.querySelector("#sg-cancel").onclick = () => {
+          host.querySelector("#sg-modal").hidden = true;
+        };
+        host.querySelector("#sg-redact").onclick = () => {
+          const redacted = host.querySelector("#sg-redacted").textContent;
+          host.querySelector("#sg-modal").hidden = true;
+          deliver(redacted);
+        };
+        host.querySelector("#sg-anyway").onclick = () => {
+          host.querySelector("#sg-modal").hidden = true;
+          deliver(box.value);
+        };
+        return host;
+      }
+
+      function paintBadge(scan) {
+        const badge = ensureUi().querySelector("#sg-badge");
+        badge.className = "sg-badge";
+        if (!scan) { badge.textContent = "guard · gotowy"; return; }
+        if (scan.action === "block") { badge.classList.add("sg-block"); badge.textContent = "blokada · " + scan.risk; return; }
+        if (scan.action === "redact") { badge.classList.add("sg-redact"); badge.textContent = "PII · " + (scan.entities || []).length; return; }
+        badge.classList.add("sg-ok");
+        badge.textContent = "czysty";
+      }
+
+      function showHold(scan) {
+        const host = ensureUi();
+        host.querySelector("#sg-title").textContent =
+          scan.action === "block" ? "Wysyłka zablokowana" : "Wiadomość zawiera dane wrażliwe";
+        host.querySelector("#sg-lead").textContent =
+          scan.action === "block"
+            ? "Laya wykryła dane, których nie wolno wysłać do modelu."
+            : "Możesz wysłać wersję z maskami albo przerwać.";
+        const list = host.querySelector("#sg-entities");
+        list.innerHTML = "";
+        for (const entity of scan.entities || []) {
+          const item = document.createElement("li");
+          item.textContent = entity.label + " · " + entity.category + " · " + entity.risk;
+          list.appendChild(item);
+        }
+        host.querySelector("#sg-redacted").textContent = scan.redacted || "";
+        host.querySelector("#sg-anyway").hidden = scan.action === "block";
+        host.querySelector("#sg-modal").hidden = false;
+      }
+
+      async function gate(event) {
+        if (passThrough) return;
+        const text = lib.getComposerText(box);
+        if (!text) return;
+        event.preventDefault();
+        event.stopPropagation();
+        try {
+          const result = await scan(text, true);
+          paintBadge(result);
+          if (lib.shouldHold(result, settings).hold) showHold(result);
+          else deliver(text);
+        } catch (error) {
+          paintBadge({ action: "block", risk: "api" });
+          log.textContent += "\n\nBŁĄD API: " + error;
+        }
+      }
+
+      sendBtn.addEventListener("click", gate, true);
+      box.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) gate(event);
+      }, true);
+      box.addEventListener("input", async () => {
+        const text = box.value.trim();
+        if (!text) { paintBadge(null); return; }
+        try { paintBadge(await scan(text, false)); } catch (_err) { paintBadge({ action: "block", risk: "api" }); }
+      });
+      fetch("/v1/admin/employees")
+        .then((r) => r.json())
+        .then((rows) => {
+          const select = document.getElementById("employee");
+          for (const row of rows) {
+            const opt = document.createElement("option");
+            opt.value = row.id;
+            opt.textContent = row.name + " · " + row.team;
+            select.appendChild(opt);
+          }
+        });
+      ensureUi();
+    </script>
+  </body>
+</html>

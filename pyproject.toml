@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensitive-guard"
+version = "0.1.0"
+description = "Laya-powered layer that detects and categorizes sensitive data before it leaves your system."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "AI HackYeah" }]
+dependencies = [
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+laya = [
+    "laya>=0.3.6,!=0.3.7",
+]
+serve = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+]
+dev = [
+    "pytest>=8.0.0",
+]
+all = [
+    "laya>=0.3.6,!=0.3.7",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+sensitive-guard = "sensitive_guard.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sensitive_guard*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
