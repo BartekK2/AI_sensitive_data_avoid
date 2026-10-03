@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "sensitive-guard",
+  "version": "0.1.0",
+  "description": "Blokuje wysyłanie danych wrażliwych do czatów AI. Skanuje pole wiadomości przez lokalną warstwę Laya.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "sensitive-guard"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://aistudio.google.com/*",
+        "https://notebooklm.google.com/*",
+        "https://copilot.microsoft.com/*",
+        "https://www.bing.com/chat*",
+        "https://perplexity.ai/*",
+        "https://www.perplexity.ai/*",
+        "https://poe.com/*",
+        "https://huggingface.co/chat*",
+        "https://grok.com/*",
+        "https://x.com/i/grok*",
+        "https://chat.deepseek.com/*",
+        "https://chat.mistral.ai/*",
+        "https://you.com/*",
+        "https://www.you.com/*",
+        "https://character.ai/*",
+        "https://beta.character.ai/*",
+        "https://www.meta.ai/*",
+        "https://meta.ai/*",
+        "https://duck.ai/*",
+        "https://lmarena.ai/*",
+        "https://chat.lmsys.org/*",
+        "https://groq.com/*",
+        "https://console.groq.com/*",
+        "https://openrouter.ai/*",
+        "https://kimi.moonshot.cn/*",
+        "https://www.kimi.com/*",
+        "https://chat.qwen.ai/*",
+        "https://phind.com/*",
+        "https://www.phind.com/*",
+        "https://pi.ai/*",
+        "https://www.chatpdf.com/*"
+      ],
+      "js": ["lib.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+name: Helios Gate
+version: 1.0.0
+schema: v1
+models:
+  - name: Helios (firmowa bramka)
+    provider: openai
+    model: gpt-4o-mini
+    apiKey: sk-helios-demo
+    apiBase: http://127.0.0.1:8080/net/openai/v1
+    roles:
+      - chat
+      - edit
+      - apply
+    requestOptions:
+      headers:
+        X-Employee-Id: emp_anna
