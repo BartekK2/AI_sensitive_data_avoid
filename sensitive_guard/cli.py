@@ -159,26 +159,31 @@ def _net(argv: list[str]) -> int:
         print("pip install fastapi uvicorn", file=sys.stderr)
         return 2
     from .fwdproxy import start_proxy
+    from .gate import execute_gated_scan
     from .layer import SensitiveDataLayer
     from .netgate import inspect_and_maybe_redact
     from .serve import create_app
-    from .workspace import WorkspaceStore, execute_gated_scan
 
     app = create_app(backend=args.backend, use_policy=args.policy, device=args.device)
     if not args.no_proxy:
-        store = WorkspaceStore()
+        ctx = app.state.gate_ctx
+        store = app.state.store
         layer = SensitiveDataLayer(backend=args.backend, device=args.device, use_policy=args.policy)
 
         def proxy_scan(body):
-            return execute_gated_scan(layer, store, body)
+            return execute_gated_scan(layer, store, body, ctx)
 
         start_proxy(
             args.host,
             args.proxy_port,
-            lambda body, ctype, emp, host: inspect_and_maybe_redact(body, ctype, proxy_scan, emp, host),
+            lambda body, ctype, emp, host: inspect_and_maybe_redact(
+                body, ctype, proxy_scan, emp, host, policy=ctx.policy.load(), store=store
+            ),
             allow_all=not args.ai_hosts_only,
             mitm=not args.no_mitm,
         )
+        app.state.proxy_port = args.proxy_port
+        app.state.mitm = not args.no_mitm
         print(f"HTTP proxy   http://{args.host}:{args.proxy_port}  (HTTP_PROXY / HTTPS_PROXY)")
         if not args.no_mitm:
             from .tlsca import CA_CERT_PATH, ensure_ca

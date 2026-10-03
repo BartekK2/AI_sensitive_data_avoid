@@ -17,3 +17,7 @@ node_modules/
 dashboard/dist/
 data/*.tmp
 data/certs/
+# runtime artifacts written by the gateway / pytest (policy.json and signatures.json stay tracked as seeds)
+data/audit.jsonl
+data/policy_history.jsonl
+data/last_pytest.json

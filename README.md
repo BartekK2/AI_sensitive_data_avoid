@@ -102,18 +102,45 @@ Nie tylko przeglądarka. Agenty i SDK firmy idą przez **bramkę** (`OPENAI_BASE
 python -m sensitive_guard net --backend heuristic --port 8080 --proxy-port 8888
 ```
 
-## Dashboard managera
+## Dashboard Helios Guard
 
-React (Vite) w `dashboard/`: incydenty, role, kategorie, whitelist, przypisywanie ludzi.
+React (Vite) w `dashboard/`. Dwa widoki (**Manager** / **Security**), PL/EN, routing po hashu z parametrami (linki do filtrów da się wkleić w slajd).
+
+| Grupa | Strona | Co pokazuje |
+|---|---|---|
+| Monitor | Security posture | wynik 0-100, karty „dzisiaj”, słupki 24h, zespół / destynacja / kategoria, top osób, pole „sprawdź prompt”, pasek testów |
+| Monitor | Incidents | kolejka z filtrami, grupowanie powtórek, akcje zbiorcze, eksport CSV/JSONL, szczegół z „dlaczego”, runbook, notatka, przypisanie |
+| Monitor | Threats (security) | feed sygnatur OWASP LLM, import z CERT, liczniki loop / memory / tool / model |
+| Monitor | Audit (security) | append-only `data/audit.jsonl`, filtry, maskowanie wartości, `reveal` zapisywany w audycie |
+| Monitor | Telemetry (security) | p50/p95, RPM, backend split, błędy upstreamu, ostatnie decyzje |
+| Govern | Controls | katalog deterministic / semantic z trafieniami, próg z podglądem na żywo, akcje per kategoria, nadpisania per destynacja, presety, allow-lista modeli |
+| Govern | Policy | efektywna polityka, wersja, mtime, historia zmian, edycja i eksport `policy.json` |
+| Govern | Budget | tokeny / koszt / RPM per osoba, zespół, model; 80 % alert; 429 |
+| Govern | Roles / Categories / Whitelist / People | edycja, „co ta rola może wysłać”, własne wzorce regex dla kategorii, nieznani nadawcy |
+| Demo | Agent chat | scenariusze jednym klikiem (PESEL, karta, klucz, injection, model, tool, pętla) przez bramkę `/net/openai` |
+| Demo | Architecture | żywy status wejść (wtyczka / bramka / proxy / MITM) i potok kontroli |
 
 ```bash
 python -m sensitive_guard serve --backend heuristic --port 8080
 cd dashboard
 npm install
-npm run dev
+npm run dev          # http://127.0.0.1:5173 (proxy do :8080)
+npm run build        # dist/ serwowane przez bramkę pod http://127.0.0.1:8080/app
 ```
 
-Otwórz http://127.0.0.1:5173 — toast wskakuje, gdy pracownik wyśle PESEL z [demo czatu](http://127.0.0.1:8080/demo).
+## Judge mode
+
+Wszystko, co jury może zmienić w trakcie oceny, działa **bez restartu** i jest widoczne w dashboardzie od następnego żądania.
+
+1. **Edytuj konfigurację na żywo.** `data/policy.json` jest przeładowywany po mtime. Zmień `threshold`, `category_actions`, `allowed_models` albo wyłącz kontrolkę w `controls` — baner „Policy reloaded (version N)” pojawi się w dashboardzie, a `GET /health` zwróci nową `policy_version`. To samo z UI: Controls → przełącznik / suwak / presety `strict | balanced | permissive`.
+2. **Uruchom testy.** `pytest` (102 testy, pozytywne i negatywne dla każdej kontrolki: policy, budget, rate limit, signatures, model / tool allow-list, memory isolation, loop guard, skan odpowiedzi, audit, incydenty, telemetria). `tests/conftest.py` zapisuje wynik do `data/last_pytest.json`, który dashboard pokazuje w pasku statusu i na stronie Telemetry.
+3. **Wrzuć własny prompt.** Pole na stronie Security posture woła `POST /v1/scan` i pokazuje akcję, encje, kontrolki i opóźnienie. Strona Agent chat przechodzi pełną ścieżką przez `/net/openai/v1/chat/completions` (403 blok, 429 budżet / pętla, 200 z redakcją). Bez klucza API upstream zwraca 502 — bramka i tak zablokowała wcześniej, co widać w nagłówkach `X-Helios-*`.
+4. **Telemetria.** `GET /v1/admin/metrics` — postawa z listą odjęć, p50/p95, RPM, podział backendu, godzinowe słupki, per zespół / destynacja / kategoria / rodzaj. `GET /v1/admin/audit?format=csv` — pełny ślad decyzji (wartości zamaskowane; `reveal=true` jest logowany).
+5. **Degradacja.** Bez `pip install sensitive-guard[laya]` bramka działa w trybie `heuristic` (deterministyczne: PESEL / NIP / IBAN / Luhn / sekrety / sygnatury) i mówi o tym banerem. Semantyczne kontrolki pokazują się jako wyłączone.
+
+Ścieżka decyzji dla jednego żądania: allow-lista modeli → rate limit → budżet → loop guard → (tool allow-list, memory isolation w bramce) → finder + klasyfikator → sygnatury → własne wzorce → wyłączone kontrolki → whitelist / rola → akcja per kategoria / destynacja → redakcja → incydent (dedupe 5 min) → audit + telemetria.
+
+Reset danych demo: Incidents (widok Security) → „Clear live incidents” / „Remove seed incidents”, albo `POST /v1/admin/demo/reset`.
 
 ## Wtyczka Chrome (czaty AI)
 

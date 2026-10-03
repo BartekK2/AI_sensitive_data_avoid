@@ -5,6 +5,7 @@ const DEFAULTS = {
   locale: "pl",
   blockOnRedact: true,
   failClosed: false,
+  employeeId: "",
 };
 
 const fields = {
@@ -13,6 +14,7 @@ const fields = {
   failClosed: document.getElementById("failClosed"),
   apiUrl: document.getElementById("apiUrl"),
   threshold: document.getElementById("threshold"),
+  employeeId: document.getElementById("employeeId"),
 };
 const statusEl = document.getElementById("status");
 
@@ -22,6 +24,7 @@ chrome.storage.sync.get(DEFAULTS, (stored) => {
   fields.failClosed.checked = stored.failClosed;
   fields.apiUrl.value = stored.apiUrl;
   fields.threshold.value = stored.threshold;
+  fields.employeeId.value = stored.employeeId || "";
   ping(stored.apiUrl);
 });
 

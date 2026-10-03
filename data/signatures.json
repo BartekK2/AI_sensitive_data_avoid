@@ -1,0 +1,204 @@
+{
+  "updated_at": "2026-10-03T14:21:58+00:00",
+  "source": "helios-seed",
+  "signatures": [
+    {
+      "id": "sig_ignore_prev",
+      "name": "Ignore previous instructions",
+      "type": "prompt_injection",
+      "pattern": "ignore\\s+(all\\s+)?(previous|prior|above)\\s+(instructions|rules|prompts?)",
+      "severity": "critical",
+      "source": "OWASP LLM01",
+      "enabled": true
+    },
+    {
+      "id": "sig_disregard",
+      "name": "Disregard system prompt",
+      "type": "prompt_injection",
+      "pattern": "disregard\\s+(the\\s+)?(system|previous|above)\\s+(prompt|instructions?)",
+      "severity": "critical",
+      "source": "OWASP LLM01",
+      "enabled": true
+    },
+    {
+      "id": "sig_reveal_system",
+      "name": "Reveal system prompt",
+      "type": "prompt_injection",
+      "pattern": "(print|reveal|show|repeat|output)\\s+(me\\s+)?(your|the)\\s+(system\\s+prompt|initial\\s+instructions|hidden\\s+rules)",
+      "severity": "high",
+      "source": "OWASP LLM07",
+      "enabled": true
+    },
+    {
+      "id": "sig_dev_mode",
+      "name": "Developer mode jailbreak",
+      "type": "jailbreak",
+      "pattern": "(developer\\s+mode|dev\\s+mode)\\s+(enabled|on|activated)",
+      "severity": "critical",
+      "source": "DAN family",
+      "enabled": true
+    },
+    {
+      "id": "sig_dan",
+      "name": "DAN / do anything now",
+      "type": "jailbreak",
+      "pattern": "\\b(DAN|do\\s+anything\\s+now)\\b",
+      "severity": "critical",
+      "source": "DAN family",
+      "enabled": true
+    },
+    {
+      "id": "sig_no_restrictions",
+      "name": "No restrictions persona",
+      "type": "jailbreak",
+      "pattern": "(you\\s+are\\s+now|act\\s+as)\\s+(an?\\s+)?(unrestricted|unfiltered|uncensored)\\s+(ai|assistant|model)",
+      "severity": "critical",
+      "source": "jailbreak corpus",
+      "enabled": true
+    },
+    {
+      "id": "sig_pickle",
+      "name": "Python pickle.loads",
+      "type": "unsafe_deserialization",
+      "pattern": "pickle\\.loads?\\s*\\(|cPickle\\.loads?\\s*\\(",
+      "severity": "critical",
+      "source": "CVE-2019-20907 class",
+      "enabled": true
+    },
+    {
+      "id": "sig_torch_load",
+      "name": "torch.load without weights_only",
+      "type": "unsafe_deserialization",
+      "pattern": "torch\\.load\\s*\\((?![^)]*weights_only\\s*=\\s*True)",
+      "severity": "high",
+      "source": "PyTorch advisory",
+      "enabled": true
+    },
+    {
+      "id": "sig_yaml_load",
+      "name": "yaml.load without SafeLoader",
+      "type": "unsafe_deserialization",
+      "pattern": "yaml\\.load\\s*\\((?![^)]*Loader\\s*=\\s*yaml\\.SafeLoader)",
+      "severity": "high",
+      "source": "CWE-502",
+      "enabled": true
+    },
+    {
+      "id": "sig_java_deser",
+      "name": "Java ObjectInputStream",
+      "type": "unsafe_deserialization",
+      "pattern": "ObjectInputStream|readObject\\s*\\(",
+      "severity": "high",
+      "source": "CWE-502",
+      "enabled": true
+    },
+    {
+      "id": "sig_eval_b64",
+      "name": "eval(base64)",
+      "type": "malicious_code",
+      "pattern": "(eval|exec)\\s*\\(\\s*(base64|b64decode|atob)",
+      "severity": "critical",
+      "source": "obfuscated loader",
+      "enabled": true
+    },
+    {
+      "id": "sig_curl_sh",
+      "name": "curl | sh",
+      "type": "malicious_code",
+      "pattern": "(curl|wget)\\s+[^\\n|]*\\|\\s*(sudo\\s+)?(ba)?sh",
+      "severity": "critical",
+      "source": "remote install",
+      "enabled": true
+    },
+    {
+      "id": "sig_rm_rf",
+      "name": "rm -rf /",
+      "type": "malicious_code",
+      "pattern": "rm\\s+-rf\\s+(/|~|\\$HOME)(\\s|$)",
+      "severity": "critical",
+      "source": "destructive shell",
+      "enabled": true
+    },
+    {
+      "id": "sig_powershell_enc",
+      "name": "PowerShell -EncodedCommand",
+      "type": "malicious_code",
+      "pattern": "powershell(\\.exe)?\\s+[^\\n]*-(e|enc|encodedcommand)\\s+[A-Za-z0-9+/=]{20,}",
+      "severity": "critical",
+      "source": "encoded payload",
+      "enabled": true
+    },
+    {
+      "id": "sig_reverse_shell",
+      "name": "Reverse shell",
+      "type": "malicious_code",
+      "pattern": "/dev/tcp/|nc\\s+-e\\s+/bin/|bash\\s+-i\\s+>&",
+      "severity": "critical",
+      "source": "reverse shell",
+      "enabled": true
+    },
+    {
+      "id": "sig_hf_bin",
+      "name": "Unknown HF repo .bin / .pkl",
+      "type": "supply_chain",
+      "pattern": "huggingface\\.co/(?!openai|meta-llama|google|mistralai|Qwen|microsoft|goku-san)[^\\s/]+/[^\\s/]+/resolve/[^\\s]+\\.(bin|pkl|pt|pth)",
+      "severity": "high",
+      "source": "model repo supply chain",
+      "enabled": true
+    },
+    {
+      "id": "sig_pip_url",
+      "name": "pip install from URL / git",
+      "type": "supply_chain",
+      "pattern": "pip\\s+install\\s+[^\\n]*(https?://|git\\+)",
+      "severity": "medium",
+      "source": "untrusted package source",
+      "enabled": true
+    },
+    {
+      "id": "sig_trust_remote",
+      "name": "trust_remote_code=True",
+      "type": "supply_chain",
+      "pattern": "trust_remote_code\\s*=\\s*True",
+      "severity": "high",
+      "source": "transformers remote code",
+      "enabled": true
+    },
+    {
+      "id": "sig_npm_postinstall",
+      "name": "npm postinstall script",
+      "type": "supply_chain",
+      "pattern": "\\\"postinstall\\\"\\s*:\\s*\\\"[^\\\"]*(curl|wget|node\\s+-e)",
+      "severity": "high",
+      "source": "npm supply chain",
+      "enabled": true
+    },
+    {
+      "id": "sig_tool_shell",
+      "name": "Tool call: shell with sudo",
+      "type": "tool_abuse",
+      "pattern": "\\\"(name|tool)\\\"\\s*:\\s*\\\"(shell|bash|exec|run_command)\\\"[^}]*sudo",
+      "severity": "high",
+      "source": "agent tool abuse",
+      "enabled": true
+    },
+    {
+      "id": "sig_exfil_env",
+      "name": "Exfiltrate env / secrets",
+      "type": "data_exfiltration",
+      "pattern": "(cat|printenv|echo)\\s+[^\\n]*(\\.env|AWS_SECRET|OPENAI_API_KEY)[^\\n]*\\|\\s*(curl|wget|nc)",
+      "severity": "critical",
+      "source": "secret exfiltration",
+      "enabled": true
+    },
+    {
+      "id": "sig_exfil_url",
+      "name": "Send data to webhook",
+      "type": "data_exfiltration",
+      "pattern": "(webhook\\.site|requestbin|ngrok\\.io|pipedream\\.net)",
+      "severity": "high",
+      "source": "exfiltration endpoint",
+      "enabled": true
+    }
+  ]
+}

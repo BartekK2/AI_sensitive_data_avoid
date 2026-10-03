@@ -2115,6 +2115,140 @@
       "redacted": "\\npesel [PESEL]\\n",
       "status": "open",
       "note": ""
+    },
+    {
+      "id": "inc_e2ae9470",
+      "created_at": "2026-10-03T14:24:17+00:00",
+      "last_seen_at": "2026-10-03T14:24:17+00:00",
+      "count": 1,
+      "request_id": "req_d8eb0e6ea3",
+      "request_ids": [
+        "req_d8eb0e6ea3"
+      ],
+      "dedupe_key": "f953ea5788c97767",
+      "kind": "pii",
+      "direction": "input",
+      "employee_id": "emp_anna",
+      "employee_name": "Anna Nowak",
+      "role_name": "Pracownik",
+      "team": "Support",
+      "destination": "openai",
+      "model": "gpt-4o-mini",
+      "action": "block",
+      "risk": "critical",
+      "categories": [
+        "government_id",
+        "person_name"
+      ],
+      "labels": [
+        "person name",
+        "pesel"
+      ],
+      "entities": [
+        {
+          "label": "person name",
+          "category": "person_name",
+          "risk": "medium",
+          "detected_by": "heuristic",
+          "control": "pii_classifier",
+          "score": 0.62,
+          "signature_name": null
+        },
+        {
+          "label": "pesel",
+          "category": "government_id",
+          "risk": "critical",
+          "detected_by": "checksum",
+          "control": "pesel_checksum",
+          "score": 0.96,
+          "signature_name": null
+        }
+      ],
+      "controls_fired": [
+        "pesel_checksum",
+        "pii_classifier"
+      ],
+      "blocked_reason": "Blocked: pesel",
+      "redacted": "Napisz maila do HR: [OSOBA], PESEL [PESEL], prosi o zaświadczenie.",
+      "prompt_excerpt": "Napisz maila do HR: [OSOBA], PESEL [PESEL], prosi o zaświadczenie.",
+      "policy_version": 1,
+      "latency_ms": 98.19,
+      "status": "open",
+      "assignee": null,
+      "note": "",
+      "demo": false
+    },
+    {
+      "id": "inc_24cbf425",
+      "created_at": "2026-10-03T14:24:19+00:00",
+      "last_seen_at": "2026-10-03T14:24:19+00:00",
+      "count": 1,
+      "request_id": "req_99fc87ce3f",
+      "request_ids": [
+        "req_99fc87ce3f"
+      ],
+      "dedupe_key": "97a41e713fc07d7a",
+      "kind": "model",
+      "direction": "input",
+      "employee_id": "emp_anna",
+      "employee_name": "Anna Nowak",
+      "role_name": "Pracownik",
+      "team": "Support",
+      "destination": "openai",
+      "model": "shadow-llm-9000",
+      "action": "block",
+      "risk": "high",
+      "categories": [],
+      "labels": [],
+      "entities": [],
+      "controls_fired": [
+        "model_allowlist"
+      ],
+      "blocked_reason": "model 'shadow-llm-9000' is not on the allow-list",
+      "redacted": "Hello",
+      "prompt_excerpt": "Hello",
+      "policy_version": 1,
+      "latency_ms": 62.67,
+      "status": "resolved",
+      "assignee": null,
+      "note": "fuszera",
+      "demo": false,
+      "resolved_at": "2026-10-03T14:44:22+00:00"
     }
-  ]
+  ],
+  "usage": {
+    "date": "2026-10-03",
+    "employees": {
+      "emp_anna": {
+        "tokens": 0,
+        "requests": 2,
+        "cost": 0.0,
+        "blocked": 2
+      }
+    },
+    "teams": {
+      "Support": {
+        "tokens": 0,
+        "requests": 2,
+        "cost": 0.0,
+        "blocked": 2
+      }
+    },
+    "models": {
+      "gpt-4o-mini": {
+        "tokens": 0,
+        "requests": 1,
+        "cost": 0.0,
+        "blocked": 1,
+        "local": false
+      },
+      "shadow-llm-9000": {
+        "tokens": 0,
+        "requests": 1,
+        "cost": 0.0,
+        "blocked": 1,
+        "local": false
+      }
+    }
+  }
 }
