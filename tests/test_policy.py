@@ -120,17 +120,29 @@ def test_put_and_export_policy(client):
     assert client.put("/v1/admin/policy", json={"threshold": "not-a-number"}).status_code == 422
 
 
-def test_custom_category_patterns_detect(client):
+def test_topic_confidence_slider():
+    from sensitive_guard.topics import kept_topics
+
+    category = {"key": "wojsko", "label": "wojsko", "enabled": True, "builtin": False, "min_confidence": 0.35, "risk": "medium"}
+    assert kept_topics({"wojsko": 0.62}, [category])[0]["confidence"] == 0.62
+    assert kept_topics({"wojsko": 0.2}, [category]) == []
+    strict = {**category, "min_confidence": 0.8}
+    assert kept_topics({"wojsko": 0.62}, [strict]) == []
+
+
+def test_custom_category_name_is_watched(client):
     created = client.post(
         "/v1/admin/categories",
-        json={"key": "health", "label": "Health data", "risk": "high", "enabled": True, "patterns": [r"\b(diabetes|HIV)\b"]},
+        json={"key": "wojsko", "label": "wojsko", "risk": "medium", "enabled": True},
     )
     assert created.status_code == 200
-    result = scan(client, "Patient note: diagnosed with diabetes last year.")
-    assert any(entity["label"] == "Health data" for entity in result["entities"])
-    assert result["action"] == "redact"
-    assert "custom_patterns" in result["controls_fired"]
+    result = scan(client, "Opisz strukturę wojskową i jednostki wojska.")
+    assert any(entity["label"] == "wojsko" for entity in result["entities"])
+    assert any(item.get("category") == "wojsko" for item in result["categories"])
+    assert result["action"] == "block"
+    missed = scan(client, "Jutro idę na kawę.")
+    assert all(entity.get("label") != "wojsko" for entity in missed["entities"])
 
     client.patch("/v1/admin/controls/custom_patterns", json={"enabled": False})
-    result = scan(client, "Patient note: diagnosed with diabetes last year.")
-    assert all(entity["label"] != "Health data" for entity in result["entities"])
+    muted = scan(client, "Opisz strukturę wojskową i jednostki wojska.")
+    assert all(entity.get("label") != "wojsko" for entity in muted["entities"])

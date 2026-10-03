@@ -7,7 +7,7 @@ import { useApp } from "../store.jsx";
 const EMPTY = { name: "", email: "", team: "", role_id: "" };
 
 export default function People() {
-  const { t, data, refresh, route, metrics } = useApp();
+  const { t, data, refresh, route } = useApp();
   const [form, setForm] = useState(EMPTY);
   const [editingId, setEditingId] = useState(null);
   const [team, setTeam] = useState("");
@@ -30,8 +30,6 @@ export default function People() {
     }
     return out;
   }, [data.incidents]);
-
-  const unknown = stats.__unknown__;
 
   useEffect(() => {
     if (route.params.id) {
@@ -60,8 +58,6 @@ export default function People() {
     .map((item) => ({ ...item, stats: stats[item.id] || { open: 0, total: 0, critical: 0, last: null, blocked: 0 } }))
     .sort((a, b) => b.stats.open - a.stats.open || b.stats.total - a.stats.total || a.name.localeCompare(b.name));
 
-  const budgetRows = Object.fromEntries((metrics?.top_people || []).map((row) => [row.employee_id || row.id, row]));
-
   return (
     <div>
       <div className="page-head">
@@ -70,16 +66,6 @@ export default function People() {
           <p className="lead">{t("Who sends what. The extension and the agent identify people by employee ID or e-mail.")}</p>
         </div>
       </div>
-
-      {unknown && (
-        <div className="banner warn">
-          <b>{t("Unknown actors")}</b>: {unknown.total} {t("Incidents").toLowerCase()} ({unknown.open} {t("open")}) —{" "}
-          <a className="link" href={hrefFor("incidents", { employee: "unknown" })}>
-            {t("Show")}
-          </a>
-          . {t("Set employeeId in the extension or send X-Employee-Id from the agent.")}
-        </div>
-      )}
 
       <Section title={editingId ? `${t("Edit")}: ${form.name}` : t("Add person")}>
         <form className="grid" onSubmit={submit}>
@@ -133,7 +119,7 @@ export default function People() {
         </thead>
         <tbody>
           {rows.map((person) => (
-            <tr key={person.id} className={`person-row ${route.params.id === person.id ? "highlight" : ""} ${person.stats.critical ? "has-critical" : ""}`}>
+            <tr key={person.id} className={`person-row ${person.stats.critical ? "has-critical" : ""}`}>
               <td>
                 <strong>{person.name}</strong>
                 <div className="muted small">
@@ -142,13 +128,7 @@ export default function People() {
               </td>
               <td>{person.team}</td>
               <td>
-                {roles[person.role_id] ? (
-                  <a className="link" href={hrefFor("roles", { id: person.role_id })}>
-                    {roles[person.role_id].name}
-                  </a>
-                ) : (
-                  <span className="muted">—</span>
-                )}
+                {roles[person.role_id] ? roles[person.role_id].name : <span className="muted">—</span>}
               </td>
               <td>
                 {person.stats.open ? <Badge tone={person.stats.critical ? "critical" : "high"}>{person.stats.open}</Badge> : <span className="muted">0</span>}
@@ -158,7 +138,6 @@ export default function People() {
                   {person.stats.total}
                 </a>
                 {person.stats.blocked > 0 && <span className="muted small"> · {person.stats.blocked} {t("blocked")}</span>}
-                {budgetRows[person.id]?.tokens ? <span className="muted small"> · {budgetRows[person.id].tokens} tok</span> : null}
               </td>
               <td className="muted small">
                 <RelativeTime value={person.stats.last} />

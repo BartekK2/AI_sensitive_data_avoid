@@ -81,6 +81,85 @@ def detected_by_for(entity: dict[str, Any]) -> str:
     return "heuristic"
 
 
+def _custom_entity(
+    text: str,
+    start: int,
+    end: int,
+    category: dict[str, Any],
+    key: str,
+    known: set[str],
+    *,
+    score: float,
+    detected_by: str,
+) -> dict[str, Any]:
+    return {
+        "start": start,
+        "end": end,
+        "text": text[start:end],
+        "label": category.get("label") or key,
+        "score": max(0.0, min(1.0, score)),
+        "category": key if key in known else "other",
+        "custom_key": key,
+        "risk": category.get("risk") or "medium",
+        "legal": None,
+        "families": ["CUSTOM"],
+        "source": "custom",
+        "detected_by": detected_by,
+        "control": "custom_patterns",
+    }
+
+
+def _category_terms(category: dict[str, Any]) -> list[str]:
+    """Names a custom category is watched by. Builtin categories stay on the PII finder."""
+    if category.get("builtin"):
+        return []
+    terms: list[str] = []
+    seen: set[str] = set()
+    for raw in (category.get("label"), category.get("key")):
+        text = " ".join((raw or "").split())
+        folded = text.casefold()
+        if len(folded) < 3 or folded in seen:
+            continue
+        seen.add(folded)
+        terms.append(text)
+    return terms
+
+
+def _find_term(text: str, term: str) -> list[tuple[int, int]]:
+    """Case-insensitive word match. A long word also hits its inflected forms (wojsko / wojskowy)."""
+    words = [part for part in term.casefold().split() if len(part) >= 3]
+    if not words:
+        return []
+    hay = text.casefold()
+    stems = [word[:-1] if len(word) >= 5 else word for word in words]
+    hits: list[tuple[int, int]] = []
+    start = 0
+    first = stems[0]
+    while True:
+        index = hay.find(first, start)
+        if index < 0:
+            break
+        start = index + 1
+        if index > 0 and hay[index - 1].isalnum():
+            continue
+        cursor = index + len(first)
+        while cursor < len(hay) and hay[cursor].isalnum():
+            cursor += 1
+        matched = True
+        for stem in stems[1:]:
+            while cursor < len(hay) and hay[cursor].isspace():
+                cursor += 1
+            if cursor >= len(hay) or not hay.startswith(stem, cursor):
+                matched = False
+                break
+            cursor += len(stem)
+            while cursor < len(hay) and hay[cursor].isalnum():
+                cursor += 1
+        if matched:
+            hits.append((index, cursor))
+    return hits
+
+
 def control_for(entity: dict[str, Any]) -> str:
     if entity.get("control"):
         return entity["control"]
@@ -232,41 +311,44 @@ def execute_gated_scan(layer, store, body, ctx: GateContext | None = None) -> di
                     }
                 )
 
-        # 4b. Custom category patterns from the workspace (judges can add "health" with a regex).
+        # 4b. Custom categories. The name saved from the dashboard is the topic.
         if policy.control_enabled("custom_patterns"):
-            import re as _re
-
             from .taxonomy import SensitivityCategory
 
             known = {item.value for item in SensitivityCategory}
+            seen_spans: set[tuple[int, int]] = set()
             for category in store.list_collection("categories"):
-                if not category.get("enabled", True) or not category.get("patterns"):
+                if not category.get("enabled", True):
                     continue
                 key = category.get("key") or "other"
-                for pattern in category["patterns"]:
-                    try:
-                        compiled = _re.compile(pattern, _re.I)
-                    except _re.error:
-                        continue
-                    for found in compiled.finditer(text):
-                        if not found.group(0).strip():
+                for term in _category_terms(category):
+                    for start, end in _find_term(text, term):
+                        span = (start, end)
+                        if span in seen_spans or not text[start:end].strip():
                             continue
-                        entities.append(
-                            {
-                                "start": found.start(),
-                                "end": found.end(),
-                                "text": found.group(0),
-                                "label": category.get("label") or key,
-                                "score": 0.9,
-                                "category": key if key in known else "other",
-                                "risk": category.get("risk") or "medium",
-                                "legal": None,
-                                "families": ["CUSTOM"],
-                                "source": "custom",
-                                "detected_by": "regex",
-                                "control": "custom_patterns",
-                            }
-                        )
+                        seen_spans.add(span)
+                        entities.append(_custom_entity(text, start, end, category, key, known, score=1.0, detected_by="category"))
+
+            matched = {item.get("custom_key") for item in entities if item.get("source") == "custom"}
+            from .topics import topic_matches
+
+            for hit in topic_matches(text, store.list_collection("categories")):
+                key = hit.get("key") or ""
+                if not key or key in matched:
+                    continue
+                matched.add(key)
+                entities.append(
+                    _custom_entity(
+                        text,
+                        0,
+                        len(text),
+                        hit,
+                        key,
+                        known,
+                        score=float(hit.get("confidence") or 0.0),
+                        detected_by="laya",
+                    )
+                )
 
         # 5. Disabled deterministic / semantic controls drop their entities.
         disabled = set(policy.disabled_controls())
@@ -305,10 +387,23 @@ def execute_gated_scan(layer, store, body, ctx: GateContext | None = None) -> di
         if kept:
             rebuilt = [Entity.model_validate({k: v for k, v in item.items() if k in Entity.model_fields}) for item in kept]
             payload["categories"] = [item.model_dump() for item in summarize_categories(rebuilt)]
+            label_to_key = {
+                item.get("label"): item.get("custom_key")
+                for item in kept
+                if item.get("custom_key") and item.get("label")
+            }
+            for summary in payload["categories"]:
+                if summary.get("category") != "other":
+                    continue
+                keys = [label_to_key[label] for label in summary.get("labels") or [] if label in label_to_key]
+                if keys:
+                    summary["category"] = keys[0]
             risk = risk_from_entities(kept)
             actions = []
             for item in kept:
-                entity_action = policy.action_for(item.get("category") or "", item.get("risk") or "medium", destination)
+                entity_action = policy.action_for(item.get("custom_key") or item.get("category") or "", item.get("risk") or "medium", destination)
+                if item.get("source") == "custom" and (item.get("risk") or "") in {"medium", "high", "critical"}:
+                    entity_action = GateAction.BLOCK
                 if strict_flag and entity_action is GateAction.ALLOW:
                     entity_action = GateAction.REDACT
                 item["action"] = entity_action.value

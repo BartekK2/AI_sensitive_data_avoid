@@ -161,6 +161,14 @@ def kind_of(scan: dict[str, Any] | None) -> str:
     return (scan or {}).get("kind") or "pii"
 
 
+def custom_topic_hit(scan: dict[str, Any] | None) -> bool:
+    """A category the admin added by name. Vendor traffic must not quietly let it through."""
+    for entity in (scan or {}).get("entities") or []:
+        if entity.get("source") == "custom" and entity.get("action") == "block":
+            return True
+    return False
+
+
 def inspect_and_maybe_redact(
     raw: bytes,
     content_type: str,
@@ -244,7 +252,7 @@ def inspect_and_maybe_redact(
         scan = {**scan, "action": "block", "risk": "critical", "entities": entities}
         action = "block"
     if action == "block" or (vendor and is_critical_scan(scan)):
-        if vendor and not is_critical_scan(scan):
+        if vendor and not is_critical_scan(scan) and not custom_topic_hit(scan):
             return {"action": "allow", "body": raw, "scan": scan, "texts": [text], "kind": kind}
         return {"action": "block", "body": raw, "scan": scan, "texts": [text], "kind": kind}
     if vendor:

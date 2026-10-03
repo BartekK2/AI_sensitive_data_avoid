@@ -7,15 +7,13 @@ import { useApp } from "../store.jsx";
 export default function Policy() {
   const { t, data, health, refresh } = useApp();
   const [policy, setPolicy] = useState(null);
-  const [budget, setBudget] = useState(null);
   const [raw, setRaw] = useState("");
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const [pol, bud] = await Promise.all([api.policy(), api.budget()]);
+    const pol = await api.policy();
     setPolicy(pol);
-    setBudget(bud);
     if (!editing) setRaw(JSON.stringify(pol.policy, null, 2));
   }, [editing]);
 
@@ -25,8 +23,9 @@ export default function Policy() {
 
   if (!policy) return <p className="muted">{t("Loading")}…</p>;
   const pol = policy.policy;
-  const enabled = policy.controls.filter((item) => item.enabled);
-  const disabled = policy.controls.filter((item) => !item.enabled);
+  const controls = policy.controls.filter((item) => !/budget/i.test(`${item.id} ${item.label}`));
+  const enabled = controls.filter((item) => item.enabled);
+  const disabled = controls.filter((item) => !item.enabled);
 
   async function saveRaw() {
     try {
@@ -67,7 +66,7 @@ export default function Policy() {
         </div>
         <div className="card">
           <div className="card-label">{t("Controls")}</div>
-          <b>{enabled.length}/{policy.controls.length}</b>
+          <b>{enabled.length}/{controls.length}</b>
           <div className="muted small">{disabled.length ? disabled.map((item) => item.id).join(", ") : t("All")}</div>
         </div>
         <div className="card">
@@ -87,10 +86,9 @@ export default function Policy() {
       <div className="grid-2">
         <Section title={t("Controls")}>
           <div className="chips">
-            {policy.controls.map((control) => (
+            {controls.map((control) => (
               <span key={control.id} className={`chip ${control.enabled ? "ok" : "off"}`} title={control.description}>
                 {control.label}
-                <Badge tone={control.type}>{t(control.type)}</Badge>
               </span>
             ))}
           </div>
@@ -115,12 +113,6 @@ export default function Policy() {
               {!Object.keys(overrides).length && <span className="muted">—</span>}
             </div>
           ))}
-          <h3 className="mt">{t("Budget")}</h3>
-          {budget && (
-            <p className="small">
-              {t("Rate limit")}: {budget.requests_per_min}/min · {t("Warning at {pct}%", { pct: budget.alert_pct })} · {t("Over budget")}: {budget.exceeded.length}
-            </p>
-          )}
           <h3 className="mt">{t("Agent guardrails")}</h3>
           <p className="small">
             {t("Loop guard")}: {pol.agent.loop_max_repeats}× / {pol.agent.loop_window_s}s · {t("Memory isolation")}: {String(pol.agent.memory_isolation)} · {t("Tool allow-list")}:{" "}
@@ -137,10 +129,6 @@ export default function Policy() {
             ·{" "}
             <a className="link" href={hrefFor("whitelist")}>
               {t("Whitelist")}
-            </a>{" "}
-            ·{" "}
-            <a className="link" href={hrefFor("budget")}>
-              {t("Budget")}
             </a>
           </p>
         </Section>

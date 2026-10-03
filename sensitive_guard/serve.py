@@ -63,7 +63,7 @@ class CategoryIn(BaseModel):
     risk: str = "medium"
     enabled: bool = True
     builtin: bool = False
-    patterns: list[str] = Field(default_factory=list)
+    min_confidence: float = 0.35
 
 
 class WhitelistIn(BaseModel):

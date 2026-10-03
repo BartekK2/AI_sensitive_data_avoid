@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api.js";
+import RichText from "../components/RichText.jsx";
 import { Badge, Drawer, Duration, Empty, Filters, Labels, RelativeTime, Select, useConfirm } from "../components/ui.jsx";
 import { hrefFor, navigate } from "../router.js";
 import { useApp } from "../store.jsx";
@@ -127,19 +128,6 @@ export default function Incidents() {
     await Promise.all([refresh(), load()]);
   }
 
-  async function demo(action) {
-    const ok = await ask({
-      title: t("Demo data"),
-      body: action === "reset" ? t("Remove seed incidents") + " → " + t("Reset usage") : t("Clear live incidents"),
-      tone: "danger",
-    });
-    if (!ok) return;
-    if (action === "reset") await api.demoReset(true);
-    else await api.demoClearLive();
-    setSelected(new Set());
-    await Promise.all([refresh(), load()]);
-  }
-
   function toggle(id) {
     setSelected((set) => {
       const next = new Set(set);
@@ -153,8 +141,6 @@ export default function Incidents() {
     const role = (data.roles || []).find((item) => item.id === person.role_id);
     return role?.level === "admin" || role?.can_override;
   });
-  const categories = (data.categories || []).map((item) => item.key);
-  const kinds = ["pii", "attack", "budget", "model", "loop", "rate_limit", "memory", "tool"];
   const exportIds = selected.size ? [...selected].join(",") : undefined;
 
   return (
@@ -162,33 +148,16 @@ export default function Incidents() {
       <div className="page-head">
         <div>
           <h1>{t("Incidents")}</h1>
-          <p className="lead">{t("Every blocked or redacted request lands here with the person, role and control that fired.")}</p>
         </div>
-        <div className="page-head-aside actions">
-          <a className="btn ghost" href={api.incidentsExportUrl({ format: "csv", ids: exportIds, status: filters.status || undefined })} download>
-            {t("Export CSV")}
-          </a>
-          <a className="btn ghost" href={api.incidentsExportUrl({ format: "jsonl", ids: exportIds, status: filters.status || undefined })} download>
-            {t("Export JSONL")}
-          </a>
-        </div>
+        <a className="link" href={api.incidentsExportUrl({ format: "csv", ids: exportIds, status: filters.status || undefined })} download>
+          {t("Export CSV")}
+        </a>
       </div>
 
       <Filters>
         <input className="grow" placeholder={t("Search text, labels, people")} value={filters.q} onChange={(event) => setFilter("q", event.target.value)} />
         <Select value={filters.status} onChange={(value) => setFilter("status", value)} placeholder={`${t("Status")}: ${t("All")}`} options={[["open", t("Open")], ["ack", t("Acknowledged")], ["resolved", t("Resolved")], ["false_positive", t("False positive")]]} />
-        <Select value={filters.risk} onChange={(value) => setFilter("risk", value)} placeholder={`${t("Risk")}: ${t("All")}`} options={[["critical", t("critical")], ["high", t("high")], ["medium", t("medium")], ["low", t("low")]]} />
         <Select value={filters.action} onChange={(value) => setFilter("action", value)} placeholder={`${t("Action")}: ${t("All")}`} options={[["block", t("block")], ["redact", t("redact")]]} />
-        <Select value={filters.kind} onChange={(value) => setFilter("kind", value)} placeholder={`${t("Kind")}: ${t("All")}`} options={kinds} />
-        <Select value={filters.team} onChange={(value) => setFilter("team", value)} placeholder={`${t("Team")}: ${t("All")}`} options={page.facets?.teams || []} />
-        <Select value={filters.destination} onChange={(value) => setFilter("destination", value)} placeholder={`${t("Destination")}: ${t("All")}`} options={page.facets?.destinations || []} />
-        <Select value={filters.category} onChange={(value) => setFilter("category", value)} placeholder={`${t("Category")}: ${t("All")}`} options={categories} />
-        <Select value={filters.employee} onChange={(value) => setFilter("employee", value)} placeholder={`${t("Person")}: ${t("All")}`} options={(data.employees || []).map((person) => [person.id, person.name])} />
-        <input type="datetime-local" value={filters.since ? filters.since.slice(0, 16) : ""} onChange={(event) => setFilter("since", event.target.value ? new Date(event.target.value).toISOString() : "")} title={t("Since")} />
-        <Select value={sort} onChange={setSort} options={[["created_at", t("Status") + " · " + t("Since")], ["risk", t("Risk")], ["count", t("Count")], ["employee_name", t("Person")], ["team", t("Team")]]} />
-        <label className="check">
-          <input type="checkbox" checked={group} onChange={(event) => setGroup(event.target.checked)} /> {t("Group repeats")}
-        </label>
       </Filters>
 
       <div className="row toolbar">
@@ -213,16 +182,6 @@ export default function Incidents() {
         <button className="btn ghost" disabled={!selected.size} onClick={() => bulk({ status: "false_positive" })}>
           {t("Mark false positive")}
         </button>
-        {audience === "security" && (
-          <>
-            <button className="btn ghost small" title={t("Demo data")} onClick={() => demo("clear")}>
-              {t("Clear live incidents")}
-            </button>
-            <button className="btn ghost small" title={t("Demo data")} onClick={() => demo("reset")}>
-              {t("Remove seed incidents")}
-            </button>
-          </>
-        )}
       </div>
 
       {loading && !rows.length && <p className="muted">{t("Loading")}…</p>}
@@ -251,7 +210,7 @@ export default function Incidents() {
               <p className="muted small">
                 {item.team} · {item.role_name} · <Labels items={item.labels} /> {item.assignee && <>· {t("Assignee")}: {item.assignee}</>}
               </p>
-              <pre className="excerpt">{item.prompt_excerpt || item.redacted}</pre>
+              <RichText className="excerpt" text={item.prompt_excerpt || item.redacted} />
               {item.note && <p className="note">{item.note}</p>}
             </article>
           );
@@ -385,7 +344,7 @@ function IncidentDetail({ item, t, admins, audience, note, setNote, attempts, on
       )}
 
       <h3>{t("Redacted excerpt")}</h3>
-      <pre>{item.prompt_excerpt || item.redacted}</pre>
+      <RichText text={item.prompt_excerpt || item.redacted} />
       {audience === "security" && item.redacted && item.redacted !== item.prompt_excerpt && (
         <details>
           <summary className="muted small">raw redacted payload</summary>

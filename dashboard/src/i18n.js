@@ -1,7 +1,11 @@
 // Keys are the English copy. Missing Polish entries fall back to English.
 const PL = {
   // navigation
+  Overview: "Przegląd",
   "Security posture": "Postawa bezpieczeństwa",
+  "Nothing sensitive leaves the machine.": "Nic wrażliwego nie wychodzi z maszyny.",
+  "A national ID or an injection attempt is stopped here, before the model sees it.":
+    "Numer PESEL albo próba wstrzyknięcia zatrzymuje się tutaj, zanim zobaczy to model.",
   Incidents: "Incydenty",
   Controls: "Kontrolki",
   Policy: "Polityka",
@@ -175,10 +179,6 @@ const PL = {
   "Add destination": "Dodaj destynację",
   "Add model": "Dodaj model",
   "Empty list means every model is allowed.": "Pusta lista oznacza, że każdy model jest dozwolony.",
-  "A category without a detector finds nothing. Add regex patterns to make it real.":
-    "Kategoria bez detektora nic nie wykrywa. Dodaj wzorce regex, żeby działała.",
-  Patterns: "Wzorce",
-
   // policy
   "Effective policy": "Obowiązująca polityka",
   "Policy file": "Plik polityki",
@@ -349,10 +349,9 @@ const PL = {
   Exceptions: "Wyjątki",
   "This cannot be undone.": "Tej operacji nie da się cofnąć.",
   "A disabled category does not block and does not create an incident.": "Wyłączona kategoria nie blokuje i nie tworzy incydentu.",
-  "A category without a detector finds nothing. Add regex patterns to make it real.":
-    "Kategoria bez detektora nic nie znajdzie. Dodaj wzorce regex, żeby działała.",
   "Add category": "Dodaj kategorię",
-  Patterns: "Wzorce",
+  "Minimum confidence": "Minimalna pewność",
+  "Lower also catches related words.": "Niżej łapie też pokrewne słowa.",
   label: "etykieta",
   "Domain, e-mail, pattern or label that is not treated as a leak.": "Domena, e-mail, wzorzec lub etykieta nietraktowana jako wyciek.",
   "Add exception": "Dodaj wyjątek",

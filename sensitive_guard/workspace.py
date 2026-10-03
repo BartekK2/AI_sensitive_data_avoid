@@ -319,8 +319,8 @@ def apply_workspace_policy(
     kept: list[dict[str, Any]] = []
     skipped: list[dict[str, Any]] = []
     for entity in entities:
-        category = entity.get("category") or ""
-        if category in disabled:
+        category = entity.get("custom_key") or entity.get("category") or ""
+        if category in disabled or (entity.get("category") or "") in disabled:
             skipped.append({**entity, "skipped_by": "category_disabled"})
             continue
         if role_allows(role, category):

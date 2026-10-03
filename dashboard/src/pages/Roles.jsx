@@ -111,7 +111,7 @@ export default function Roles() {
         const users = data.employees.filter((item) => item.role_id === role.id);
         const pv = preview[role.id];
         return (
-          <div className={`panel mb ${route.params.id === role.id ? "highlight" : ""}`} key={role.id} id={role.id}>
+          <div className="panel mb" key={role.id}>
             <div className="row">
               <h3>{role.name}</h3>
               <Badge tone={role.level === "admin" ? "critical" : role.level === "elevated" ? "medium" : "neutral"}>{role.level}</Badge>
