@@ -57,6 +57,17 @@ LAYER_LABELS: list[str] = [
     "password",
 ]
 
+# Attack-signature labels (prompt injection, exploits). Fed from data/signatures.json.
+ATTACK_LABELS: list[str] = [
+    "prompt injection",
+    "jailbreak",
+    "unsafe deserialization",
+    "malicious code",
+    "supply chain",
+    "tool abuse",
+    "data exfiltration",
+]
+
 COLLAPSE: dict[str, str] = {
     "given name": "person name",
     "surname": "person name",
@@ -103,6 +114,7 @@ class SensitivityCategory(str, Enum):
     TEMPORAL = "temporal"
     ONLINE = "online"
     HEALTH = "health"
+    ATTACK = "attack"
     OTHER = "other"
     NONE = "none"
 
@@ -153,9 +165,12 @@ LABEL_CATEGORY: dict[str, SensitivityCategory] = {
     "time": SensitivityCategory.TEMPORAL,
     "web address": SensitivityCategory.ONLINE,
     NOT_PII: SensitivityCategory.NONE,
+    **{label: SensitivityCategory.ATTACK for label in ATTACK_LABELS},
 }
 
 LABEL_RISK: dict[str, RiskLevel] = {
+    **{label: RiskLevel.CRITICAL for label in ATTACK_LABELS},
+    "tool abuse": RiskLevel.HIGH,
     "api key": RiskLevel.CRITICAL,
     "access token": RiskLevel.CRITICAL,
     "private key": RiskLevel.CRITICAL,
@@ -254,6 +269,7 @@ REDACT_EN: dict[str, str] = {
     "access token": "TOKEN",
     "private key": "PRIVATE KEY",
     "password": "PASSWORD",
+    **{label: label.upper() for label in ATTACK_LABELS},
 }
 
 REDACT_PL: dict[str, str] = {
@@ -287,6 +303,7 @@ REDACT_PL: dict[str, str] = {
     "access token": "TOKEN",
     "private key": "KLUCZ PRYWATNY",
     "password": "HASŁO",
+    **{label: label.upper() for label in ATTACK_LABELS},
 }
 
 RISK_ORDER = {
@@ -327,7 +344,19 @@ def max_risk(levels: list[RiskLevel]) -> RiskLevel:
     return max(levels, key=lambda level: RISK_ORDER[level])
 
 
-def action_for_risk(risk: RiskLevel, *, strict: bool = False) -> GateAction:
+def action_for_risk(
+    risk: RiskLevel,
+    *,
+    strict: bool = False,
+    category: str | None = None,
+    overrides: dict[str, str] | None = None,
+) -> GateAction:
+    """Risk -> action, with optional per-category overrides from the central policy."""
+    if overrides and category and category in overrides:
+        try:
+            return GateAction(overrides[category])
+        except ValueError:
+            pass
     if risk is RiskLevel.CRITICAL:
         return GateAction.BLOCK
     if risk is RiskLevel.HIGH:

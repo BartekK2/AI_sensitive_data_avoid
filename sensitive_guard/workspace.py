@@ -144,6 +144,10 @@ def seed() -> dict[str, Any]:
                 "redacted": "Klient ma PESEL [PESEL], proszę sprawdzić polisę.",
                 "status": "open",
                 "note": "",
+                "kind": "pii",
+                "count": 1,
+                "controls_fired": ["pesel_checksum"],
+                "demo": True,
             },
             {
                 "id": "inc_seed2",
@@ -160,6 +164,10 @@ def seed() -> dict[str, Any]:
                 "redacted": "Oddzwoń do [EMAIL] albo [TELEFON].",
                 "status": "open",
                 "note": "",
+                "kind": "pii",
+                "count": 1,
+                "controls_fired": ["pii_classifier"],
+                "demo": True,
             },
             {
                 "id": "inc_seed3",
@@ -176,6 +184,10 @@ def seed() -> dict[str, Any]:
                 "redacted": "Klucz testowy: [KLUCZ API]",
                 "status": "ack",
                 "note": "Klucz unieważniony.",
+                "kind": "pii",
+                "count": 1,
+                "controls_fired": ["secrets_regex"],
+                "demo": True,
             },
         ],
     }
@@ -333,6 +345,20 @@ def risk_from_entities(entities: list[dict[str, Any]]) -> RiskLevel:
     return max_risk(levels)
 
 
+DEDUPE_WINDOW_S = 300
+INCIDENT_STATUSES = ("open", "ack", "resolved", "false_positive")
+
+
+def _parse_ts(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
 def record_incident(
     store: WorkspaceStore,
     *,
@@ -343,70 +369,79 @@ def record_incident(
 ) -> dict[str, Any] | None:
     if scan.get("action") not in {"block", "redact"}:
         return None
+    from .gate import dedupe_key, excerpt_of
+
+    labels = sorted({entity.get("label") for entity in scan.get("entities") or [] if entity.get("label")})
+    key = dedupe_key((employee or {}).get("id"), destination, labels or [scan.get("kind") or "pii"], scan.get("text") or scan.get("redacted") or "")
+    now = _now()
+    now_dt = _parse_ts(now)
+
+    existing = None
+    for row in store.list_collection("incidents"):
+        if row.get("dedupe_key") != key or row.get("status") not in {"open", "ack"}:
+            continue
+        seen = _parse_ts(row.get("last_seen_at") or row.get("created_at"))
+        if seen and now_dt and (now_dt - seen).total_seconds() <= DEDUPE_WINDOW_S:
+            existing = row
+            break
+    if existing is not None:
+        updated = {
+            **existing,
+            "count": int(existing.get("count") or 1) + 1,
+            "last_seen_at": now,
+            "request_ids": (existing.get("request_ids") or [])[-9:] + [scan.get("request_id")],
+        }
+        store.upsert("incidents", updated, "inc")
+        return {**updated, "duplicate": True}
+
     item = {
         "id": _id("inc"),
-        "created_at": _now(),
+        "created_at": now,
+        "last_seen_at": now,
+        "count": 1,
+        "request_id": scan.get("request_id"),
+        "request_ids": [scan.get("request_id")],
+        "dedupe_key": key,
+        "kind": scan.get("kind") or "pii",
+        "direction": scan.get("direction") or "input",
         "employee_id": (employee or {}).get("id"),
-        "employee_name": (employee or {}).get("name") or "Nieznany",
+        "employee_name": (employee or {}).get("name") or "Unknown",
         "role_name": (role or {}).get("name") or "—",
         "team": (employee or {}).get("team") or "—",
         "destination": destination,
+        "model": scan.get("model"),
         "action": scan.get("action"),
         "risk": scan.get("risk"),
         "categories": [item.get("category") for item in scan.get("categories") or []],
-        "labels": sorted({entity.get("label") for entity in scan.get("entities") or [] if entity.get("label")}),
+        "labels": labels,
+        "entities": [
+            {
+                "label": entity.get("label"),
+                "category": entity.get("category"),
+                "risk": entity.get("risk"),
+                "detected_by": entity.get("detected_by"),
+                "control": entity.get("control"),
+                "score": entity.get("score"),
+                "signature_name": entity.get("signature_name"),
+            }
+            for entity in scan.get("entities") or []
+        ],
+        "controls_fired": scan.get("controls_fired") or [],
+        "blocked_reason": scan.get("blocked_reason"),
         "redacted": scan.get("redacted") or "",
+        "prompt_excerpt": scan.get("prompt_excerpt") or excerpt_of(scan.get("redacted") or ""),
+        "policy_version": scan.get("policy_version"),
+        "latency_ms": scan.get("latency_ms"),
         "status": "open",
+        "assignee": None,
         "note": "",
+        "demo": False,
     }
     store.upsert("incidents", item, "inc")
     return item
 
 
 def execute_gated_scan(layer, store: WorkspaceStore, body) -> dict[str, Any]:
-    from .taxonomy import action_for_risk
+    from .gate import execute_gated_scan as _run
 
-    result = layer.scan(
-        body.text,
-        threshold=getattr(body, "threshold", 0.5),
-        region=getattr(body, "region", "PL"),
-        locale=getattr(body, "locale", "pl"),
-        collapse=getattr(body, "collapse", False),
-    )
-    payload = result.model_dump()
-    employee = store.employee_by_id_or_email(getattr(body, "employee_id", None), getattr(body, "employee_email", None))
-    actor_name = getattr(body, "actor_name", None)
-    actor_team = getattr(body, "actor_team", None)
-    if employee is None and actor_name:
-        employee = {"id": None, "name": actor_name, "team": actor_team or "—", "role_id": None}
-    role = store.role_for(employee)
-    if role is None and actor_name and employee and not employee.get("role_id"):
-        role = {"name": "Antigravity"}
-    kept, skipped = apply_workspace_policy(payload.get("entities") or [], store=store, employee=employee)
-    payload["entities"] = kept
-    payload["skipped"] = skipped
-    payload["policy_applied"] = True
-    if kept:
-        from .models import Entity, summarize_categories
-
-        rebuilt = [Entity.model_validate(item) for item in kept]
-        payload["categories"] = [item.model_dump() for item in summarize_categories(rebuilt)]
-        risk = risk_from_entities(kept)
-        payload["risk"] = risk.value
-        payload["action"] = action_for_risk(risk, strict=bool(getattr(body, "strict", False))).value
-    else:
-        payload["categories"] = []
-        payload["risk"] = "none"
-        payload["action"] = "allow"
-    payload["employee"] = employee
-    payload["role"] = role
-    payload["incident"] = None
-    if getattr(body, "record", False):
-        payload["incident"] = record_incident(
-            store,
-            employee=employee,
-            role=role,
-            scan=payload,
-            destination=getattr(body, "destination", "ai_chat"),
-        )
-    return payload
+    return _run(layer, store, body)

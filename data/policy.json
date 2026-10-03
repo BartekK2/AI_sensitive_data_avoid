@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-03T14:21:58+00:00",
+  "updated_by": "seed",
+  "preset": "balanced",
+  "threshold": 0.5,
+  "strict": false,
+  "category_actions": {
+    "government_id": "block",
+    "financial": "block",
+    "credentials": "block",
+    "attack": "block",
+    "health": "redact"
+  },
+  "destination_overrides": {
+    "openai": {
+      "person_name": "redact"
+    },
+    "chatgpt.com": {
+      "contact": "redact"
+    },
+    "localhost": {
+      "contact": "allow",
+      "person_name": "allow"
+    }
+  },
+  "allowed_models": [
+    "gpt-4o-mini",
+    "gpt-4o",
+    "gpt-4.1*",
+    "claude-3*",
+    "claude-sonnet*",
+    "gemini-*",
+    "llama3*",
+    "mistral*",
+    "qwen*"
+  ],
+  "scan_output": true,
+  "controls": {
+    "pesel_checksum": {
+      "enabled": true,
+      "threshold": null
+    },
+    "nip_checksum": {
+      "enabled": true,
+      "threshold": null
+    },
+    "regon_checksum": {
+      "enabled": true,
+      "threshold": null
+    },
+    "iban_check": {
+      "enabled": true,
+      "threshold": null
+    },
+    "luhn_card": {
+      "enabled": true,
+      "threshold": null
+    },
+    "secrets_regex": {
+      "enabled": true,
+      "threshold": null
+    },
+    "pii_classifier": {
+      "enabled": true,
+      "threshold": null
+    },
+    "laya_policy": {
+      "enabled": true,
+      "threshold": null
+    },
+    "custom_patterns": {
+      "enabled": true,
+      "threshold": null
+    },
+    "signatures": {
+      "enabled": true,
+      "threshold": null
+    },
+    "model_allowlist": {
+      "enabled": true,
+      "threshold": null
+    },
+    "budget": {
+      "enabled": true,
+      "threshold": null
+    },
+    "rate_limit": {
+      "enabled": true,
+      "threshold": null
+    },
+    "loop_guard": {
+      "enabled": true,
+      "threshold": null
+    },
+    "tool_allowlist": {
+      "enabled": true,
+      "threshold": null
+    },
+    "memory_isolation": {
+      "enabled": true,
+      "threshold": null
+    },
+    "output_scan": {
+      "enabled": true,
+      "threshold": null
+    },
+    "whitelist": {
+      "enabled": true,
+      "threshold": null
+    },
+    "roles": {
+      "enabled": true,
+      "threshold": null
+    }
+  },
+  "budgets": {
+    "enabled": true,
+    "alert_pct": 80,
+    "default_tokens_per_day": 20000,
+    "default_team_tokens_per_day": 60000,
+    "default_model_tokens_per_day": 200000,
+    "requests_per_min": 30,
+    "cost_per_1k": {
+      "gpt-4o-mini": 0.0024,
+      "gpt-4o": 0.02,
+      "claude-3-5-sonnet": 0.012,
+      "gemini-2.5-flash": 0.0012,
+      "gemini-3.5-flash-lite": 0.0008,
+      "llama3": 0.0,
+      "ollama": 0.0
+    },
+    "local_models": [
+      "llama3",
+      "ollama",
+      "mistral-local",
+      "qwen"
+    ],
+    "limits": {
+      "employees": {
+        "emp_anna": 8000,
+        "emp_piotr": 12000
+      },
+      "teams": {
+        "Support": 30000,
+        "Sprzedaż": 40000
+      },
+      "models": {
+        "gpt-4o": 50000
+      }
+    }
+  },
+  "agent": {
+    "loop_window_s": 60,
+    "loop_max_repeats": 5,
+    "allowed_tools": null,
+    "memory_isolation": true
+  },
+  "signatures_path": "signatures.json"
+}

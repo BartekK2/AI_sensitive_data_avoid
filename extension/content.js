@@ -9,6 +9,7 @@
     locale: "pl",
     blockOnRedact: true,
     failClosed: false,
+    employeeId: "",
   };
 
   let settings = { ...DEFAULTS };
@@ -47,6 +48,7 @@
       locale: settings.locale,
       record: Boolean(options.record),
       destination: location.hostname,
+      employeeId: settings.employeeId || null,
     });
   }
 
