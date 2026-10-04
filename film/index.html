@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AegIs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./film.css" />
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#508a8e"/>
+        <stop offset="1" stop-color="#af78a2"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div id="stage">
+    <div class="paper"></div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+
+    <header class="chrome">
+      <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+    </header>
+
+    <div id="viewport">
+      <div id="world">
+        <div class="floor"></div>
+        <div class="ribbon"></div>
+
+        <section class="scene" data-from="0" data-to="3.6" id="s-title">
+          <div class="title-copy">
+            <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+          </div>
+          <div class="cast">
+            <img class="art" src="./art/working-late.svg" alt="" />
+          </div>
+        </section>
+
+        <section class="scene" data-from="3.6" data-to="8.3" id="s-flow">
+          <h2>Agent → bramka → model</h2>
+          <div class="track">
+            <div class="station" id="st-agent"><small>01 agent</small><b>pracownik</b><span>pisze prompt</span></div>
+            <div class="rail"></div>
+            <div class="station station-gate" id="st-gate"><small>02 AegIs</small><b>bramka</b><span>sprawdza</span></div>
+            <div class="rail dim"></div>
+            <div class="station station-out" id="st-model"><small>03 model</small><b>ChatGPT</b><span>dostaje albo nic</span></div>
+            <div class="packet" id="packet">dane</div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="8.3" data-to="13.55" id="s-problem">
+          <h2>Jeden wklejony folder.</h2>
+          <div class="window leak-win">
+            <header><i></i><i></i><i></i><b>chatgpt.com</b></header>
+            <div class="thread">
+              <div class="msg me">
+                <small>Kuba · frontend</small>
+                <p>Hej, ogarnij mi ten commit przed pushem. Mega się spieszę.</p>
+              </div>
+              <div class="msg bot">
+                <small>ChatGPT</small>
+                <p>Jasne. Wklej diff albo wrzuć pliki, zerknę.</p>
+              </div>
+              <div class="msg me leak">
+                <small>Kuba · frontend</small>
+                <p>Masz cały folder, nie chce mi się cenzurować.</p>
+                <div class="files">
+                  <span>.env</span>
+                  <span>PESEL_Kowalski.txt</span>
+                  <span>wypłaty_marzec.xlsx</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="13.55" data-to="22.15" id="s-stat">
+          <div class="stat-grid">
+            <div class="ring-wrap">
+              <svg viewBox="0 0 220 220">
+                <circle class="ring-bg" cx="110" cy="110" r="96"/>
+                <circle class="ring" id="ring" cx="110" cy="110" r="96"/>
+              </svg>
+              <p class="giant" id="pct">0%</p>
+            </div>
+            <div>
+              <p class="lead fat">w pracy, <em>do chata</em></p>
+              <div class="dots" id="dots"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="22.15" data-to="30.65" id="s-check">
+          <h2>Stop na maszynie.</h2>
+          <div class="track check-track">
+            <div class="station" id="ck-a"><small>01</small><b>pracownik</b><span>pisze prompt</span></div>
+            <div class="rail"></div>
+            <div class="station station-gate" id="ck-g"><small>02 AegIs</small><b>sprawdza</b><span>na tej maszynie</span></div>
+            <div class="rail dim"></div>
+            <div class="station station-out dim" id="ck-m"><small>03 model</small><b>nie dostaje</b><span>jeśli nie wolno</span></div>
+            <div class="packet" id="token">prompt</div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="30.65" data-to="36.85" id="s-kinds">
+          <h2>Co nie wychodzi.</h2>
+          <div class="kinds">
+            <article><i>01</i><b>dane osobowe</b><span>imiona, PESEL, telefony</span></article>
+            <article><i>02</i><b>kody źródłowe</b><span>repozytoria i sekrety</span></article>
+            <article><i>03</i><b>tajemnice firmy</b><span>wypłaty, umowy, plany</span></article>
+            <article class="warn"><i>04</i><b>jailbreak</b><span>atak na agenta</span></article>
+          </div>
+        </section>
+
+        <section class="scene" data-from="36.85" data-to="49.9" id="s-speed">
+          <div class="speed-left">
+            <p class="giant"><b id="ms">160</b><small>ms</small></p>
+          </div>
+          <div class="wave" id="wave"></div>
+        </section>
+
+        <section class="scene" data-from="49.9" data-to="64.9" id="s-roles">
+          <h2>Kto i co wycieka.</h2>
+          <div class="roles">
+            <article>
+              <div class="pic"><img src="./art/programmer.svg" alt="" /></div>
+              <small>programista</small>
+              <b>klucze API</b>
+              <em class="no">wyciek</em>
+            </article>
+            <article>
+              <div class="pic"><img src="./art/doctor.svg" alt="" /></div>
+              <small>lekarz</small>
+              <b>historia medyczna</b>
+              <em class="no">wyciek</em>
+            </article>
+            <article>
+              <div class="pic"><img src="./art/working.svg" alt="" /></div>
+              <small>księgowa</small>
+              <b>odcinki wypłat</b>
+              <em class="no">wyciek</em>
+            </article>
+          </div>
+        </section>
+
+        <section class="scene" data-from="64.9" data-to="70.9" id="s-tools">
+          <h2>Chat zostaje.</h2>
+          <img class="art art-wide" src="./art/in-the-office.svg" alt="" />
+          <div class="tools-row"><span>ChatGPT</span><span>agent</span><span>czat w przeglądarce</span></div>
+        </section>
+
+        <section class="scene" data-from="70.9" data-to="75.7" id="s-panel">
+          <h2>Kto. Co. Kiedy.</h2>
+          <img class="art art-wide" src="./art/dashboard.svg" alt="" />
+          <div class="dash">
+            <aside>
+              <b>AegIs</b>
+              <u>przegląd</u><u>ludzie</u><u class="on">incydenty</u><u>role</u><u>kategorie</u>
+            </aside>
+            <div class="dash-main">
+              <div class="inc ok"><b>uprawnienia</b><span>kto co może wysłać</span></div>
+              <div class="inc"><b>whitelist</b><span>wyjątki bez alarmu</span></div>
+              <div class="inc hit"><b>incydent</b><span>kto, co, kiedy</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="75.7" data-to="98.4" id="s-rec">
+          <div class="clip-frame">
+            <video id="rec-vid" muted playsinline></video>
+          </div>
+        </section>
+
+        <section class="scene" data-from="98.4" data-to="102" id="s-end">
+          <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+        </section>
+      </div>
+    </div>
+
+    <div id="kara">
+      <i id="ball"></i>
+      <p id="words"></p>
+    </div>
+    <button id="play" type="button">Odtwórz</button>
+  </div>
+
+  <audio id="voice" src="../aegis_mowa.mp3" preload="auto"></audio>
+  <script src="./film.js?v=clips3"></script>
+</body>
+</html>

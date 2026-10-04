@@ -1,4 +1,27 @@
-# sensitive-guard
+# AegIs (sensitive-guard)
+
+Po `git clone` jedna komenda — instalacja i start bramki, proxy i dashboardu:
+
+```bash
+python start.py
+```
+
+Windows: `py start.py` albo `.\start.ps1`. macOS / Linux: `./start.sh`.
+
+Potrzebne na PATH: **Python 3.10+** i **Node.js 18+**. Skrypt tworzy `.venv`, instaluje pakiet, buduje dashboard i odpala wszystko na `http://127.0.0.1:8080`.
+
+| Co | Adres |
+| --- | --- |
+| Dashboard | http://127.0.0.1:8080/app |
+| Demo chat | http://127.0.0.1:8080/demo |
+| Film PL / EN | http://127.0.0.1:8080/film/ · http://127.0.0.1:8080/film-en/ |
+| HTTP proxy | `http://127.0.0.1:8888` |
+
+Wtyczka: Chrome → `chrome://extensions` → tryb deweloperski → **Załaduj rozpakowane** → katalog `extension/`.
+
+Opcje: `--with-laya` (model ~850 MB), `--skip-build`, `--mitm`, `--no-browser`.
+
+---
 
 Warstwa prywatności na **Laya** — otwartym klasyfikatorze decyzji (jak Jev), z wagami Apache-2.0. Wykrywa dane wrażliwe w tekście, kategoryzuje je i decyduje, czy można je puścić dalej, zredagować, czy zablokować.
 
@@ -18,12 +41,14 @@ tekst ──► finder spanów ──► Laya PII (albo heurystyka)
         kategorie + ryzyko ──► allow / redact / block ──► LLM / API
 ```
 
-## Instalacja
+## Instalacja ręczna
+
+Zwykle wystarczy `python start.py`. Ręcznie:
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
-pip install -e .[all]
+pip install -e .[demo]
 ```
 
 Bez PyTorch / wag Laya warstwa i tak działa (`backend="heuristic"`). Pełny model PII (~850 MB, `goku-san/laya-experts`, folder `pii`) wczytuje się przy `backend="laya"` albo `auto`, gdy pakiet `laya` jest zainstalowany.

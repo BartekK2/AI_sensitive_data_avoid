@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
@@ -98,10 +98,10 @@
         host.id = "sg-root";
         host.setAttribute("data-sg-ui", "1");
         host.innerHTML = `
-          <div class="sg-badge" id="sg-badge">guard · gotowy</div>
+          <div class="sg-badge" id="sg-badge">AegIs · gotowy</div>
           <div class="sg-modal" id="sg-modal" hidden>
             <div class="sg-card">
-              <div class="sg-kicker">sensitive-guard · Laya</div>
+              <div class="sg-kicker"><span class="wordmark"><span class="ai">A</span>eg<span class="ai">I</span>s</span></div>
               <h2 id="sg-title">Wysyłka wstrzymana</h2>
               <p id="sg-lead"></p>
               <ul id="sg-entities"></ul>
@@ -132,7 +132,7 @@
       function paintBadge(scan) {
         const badge = ensureUi().querySelector("#sg-badge");
         badge.className = "sg-badge";
-        if (!scan) { badge.textContent = "guard · gotowy"; return; }
+        if (!scan) { badge.textContent = "AegIs · gotowy"; return; }
         if (scan.action === "block") { badge.classList.add("sg-block"); badge.textContent = "blokada · " + scan.risk; return; }
         if (scan.action === "redact") { badge.classList.add("sg-redact"); badge.textContent = "PII · " + (scan.entities || []).length; return; }
         badge.classList.add("sg-ok");

@@ -37,14 +37,15 @@ for (const [key, el] of Object.entries(fields)) {
 }
 
 function ping(apiUrl) {
-  statusEl.textContent = "sprawdzam API…";
+  statusEl.textContent = "sprawdzam…";
+  statusEl.dataset.state = "checking";
   chrome.runtime.sendMessage({ type: "HEALTH", apiUrl }, (response) => {
     if (chrome.runtime.lastError || !response || !response.ok) {
-      statusEl.textContent = "API offline — uruchom sensitive-guard serve";
+      statusEl.textContent = "offline";
       statusEl.dataset.state = "down";
       return;
     }
-    statusEl.textContent = `API online · ${response.backend || "ok"}`;
+    statusEl.textContent = "online";
     statusEl.dataset.state = "up";
   });
 }

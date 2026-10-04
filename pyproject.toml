@@ -22,13 +22,28 @@ serve = [
     "fastapi>=0.110.0",
     "uvicorn>=0.27.0",
 ]
+net = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "cryptography>=42.0.0",
+    "httpx[http2]>=0.27.0",
+]
 dev = [
+    "pytest>=8.0.0",
+]
+demo = [
+    "fastapi>=0.110.0",
+    "uvicorn>=0.27.0",
+    "cryptography>=42.0.0",
+    "httpx[http2]>=0.27.0",
     "pytest>=8.0.0",
 ]
 all = [
     "laya>=0.3.6,!=0.3.7",
     "fastapi>=0.110.0",
     "uvicorn>=0.27.0",
+    "cryptography>=42.0.0",
+    "httpx[http2]>=0.27.0",
     "pytest>=8.0.0",
 ]
 

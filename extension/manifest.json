@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "sensitive-guard",
+  "name": "AegIs",
   "version": "0.1.0",
-  "description": "Blokuje wysyłanie danych wrażliwych do czatów AI. Skanuje pole wiadomości przez lokalną warstwę Laya.",
+  "description": "Blokuje wysyłanie danych wrażliwych do czatów AI. Skanuje pole wiadomości przez lokalną warstwę.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "sensitive-guard"
+    "default_title": "AegIs"
   },
   "background": {
     "service_worker": "background.js"

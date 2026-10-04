@@ -2,42 +2,46 @@
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
-    <title>sensitive-guard</title>
+    <title>AegIs</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <header>
-      <strong>sensitive-guard</strong>
-      <span id="status">sprawdzam API…</span>
+      <div>
+        <div class="wordmark"><span class="ai">A</span>eg<span class="ai">I</span>s</div>
+        <p>Bramka na czatach AI</p>
+      </div>
+      <span id="status">sprawdzam…</span>
     </header>
-    <label class="row">
-      <input type="checkbox" id="enabled" />
-      Włącz na czatach AI
-    </label>
-    <label class="row">
-      <input type="checkbox" id="blockOnRedact" />
-      Zatrzymuj też PII do redakcji (e-mail, telefon)
-    </label>
-    <label class="row">
-      <input type="checkbox" id="failClosed" />
-      Blokuj, gdy lokalne API nie odpowiada
-    </label>
+
+    <section class="panel">
+      <label class="switch-row">
+        <span>Włącz na czatach AI</span>
+        <span class="switch"><input type="checkbox" id="enabled" checked /><span></span></span>
+      </label>
+      <label class="switch-row">
+        <span>Zatrzymuj też PII do redakcji</span>
+        <span class="switch"><input type="checkbox" id="blockOnRedact" checked /><span></span></span>
+      </label>
+      <label class="switch-row">
+        <span>Blokuj, gdy API nie odpowiada</span>
+        <span class="switch"><input type="checkbox" id="failClosed" /><span></span></span>
+      </label>
+    </section>
+
     <label>
       Adres warstwy
-      <input type="url" id="apiUrl" />
+      <input type="url" id="apiUrl" value="http://127.0.0.1:8080" />
     </label>
     <label>
       Próg
-      <input type="number" id="threshold" min="0" max="1" step="0.05" />
+      <input type="number" id="threshold" min="0" max="1" step="0.05" value="0.5" />
     </label>
     <label>
-      Identyfikator pracownika (np. emp_anna)
+      Identyfikator pracownika
       <input type="text" id="employeeId" placeholder="emp_anna" />
     </label>
-    <p class="hint">
-      Działa na ChatGPT, Claude, Gemini, Copilot, Perplexity, Grok, DeepSeek i innych czatach AI.
-      Najpierw uruchom: <code>python -m sensitive_guard serve</code>
-    </p>
+    <p class="hint">ChatGPT, Claude, Gemini i inne czaty. Warstwa lokalna: <code>python -m sensitive_guard serve</code></p>
     <script src="popup.js"></script>
   </body>
 </html>

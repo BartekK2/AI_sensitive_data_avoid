@@ -19,6 +19,50 @@ from .workspace import INCIDENT_STATUSES, WorkspaceStore, seed
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _file_endpoint(path: Path):
+    def _serve() -> FileResponse:
+        from fastapi.responses import FileResponse as _FR
+
+        return _FR(path)
+
+    _serve.__name__ = f"media_{path.name.replace('.', '_')}"
+    return _serve
+
+
+_HOME_HTML = """<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AegIs</title>
+  <style>
+    :root { --ink:#2f5558; --accent:#508a8e; --cream:#f4efe4; --text:#1c1915; --muted:#6f675c; }
+    body { margin:0; min-height:100vh; font:16px/1.5 "Segoe UI", sans-serif; background:var(--cream); color:var(--text); }
+    main { max-width:720px; margin:0 auto; padding:72px 24px; }
+    h1 { font:700 52px/1 Georgia, serif; letter-spacing:-0.03em; margin:0 0 12px; }
+    h1 b { color:var(--accent); font-weight:700; }
+    .lead { color:var(--muted); margin:0 0 28px; }
+    a.card { display:block; background:#fff; border-radius:16px; padding:18px 22px; margin:10px 0; text-decoration:none; color:var(--ink); box-shadow:0 8px 24px #2f555814; }
+    a.card strong { display:block; font-size:18px; margin-bottom:4px; color:var(--text); }
+    .note { margin-top:28px; color:var(--muted); font-size:14px; }
+    code { background:#efe8d8; padding:2px 6px; border-radius:4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1><b>A</b>eg<b>I</b>s</h1>
+    <p class="lead">Lokalna bramka. Prompt nie wychodzi, dopóki nie przejdzie kontroli.</p>
+    <a class="card" href="/app"><strong>Dashboard</strong>Incydenty, role, kategorie, czat demo.</a>
+    <a class="card" href="/demo"><strong>Demo chat</strong>Bez wtyczki — spróbuj wysłać PESEL.</a>
+    <a class="card" href="/film/"><strong>Film PL</strong>Pitch z nagraniem.</a>
+    <a class="card" href="/film-en/"><strong>Film EN</strong>Same film, English voice.</a>
+    <p class="note">Wtyczka Chrome: <code>chrome://extensions</code> → tryb deweloperski → Załaduj rozpakowane → katalog <code>extension/</code>.</p>
+  </main>
+</body>
+</html>
+"""
+
+
 class ScanRequest(BaseModel):
     text: str
     threshold: float | None = Field(default=None, ge=0.0, le=1.0)
@@ -182,7 +226,7 @@ def create_app(
 ) -> Any:
     try:
         from fastapi import FastAPI, HTTPException, Query, Request
-        from fastapi.responses import FileResponse, PlainTextResponse, Response
+        from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, Response
         from fastapi.staticfiles import StaticFiles
     except ImportError as exc:
         raise RuntimeError("pip install 'sensitive-guard[serve]'") from exc
@@ -703,6 +747,44 @@ def create_app(
         if payload.get("action") == GateAction.BLOCK.value:
             raise HTTPException(status_code=409, detail=payload)
         return payload
+
+    @app.get("/", include_in_schema=False)
+    def home() -> HTMLResponse:
+        return HTMLResponse(_HOME_HTML)
+
+    media_names = (
+        "aegis_mowa.mp3",
+        "eng_voice.mp3",
+        "rules.mp4",
+        "roles.mp4",
+        "chat_view.mp4",
+        "dashboard_incident.mp4",
+    )
+    for media_name in media_names:
+        media_path = ROOT / media_name
+        if media_path.is_file():
+            app.add_api_route(
+                f"/{media_name}",
+                _file_endpoint(media_path),
+                methods=["GET"],
+                include_in_schema=False,
+            )
+
+    transcript = ROOT / "anim" / "transcript.json"
+    if transcript.is_file():
+        @app.get("/anim/transcript.json", include_in_schema=False)
+        def film_transcript() -> FileResponse:
+            return FileResponse(transcript, media_type="application/json")
+
+    film_dir = ROOT / "film"
+    if film_dir.is_dir():
+        app.mount("/film", StaticFiles(directory=film_dir, html=True), name="film")
+    film_en_dir = ROOT / "film-en"
+    if film_en_dir.is_dir():
+        app.mount("/film-en", StaticFiles(directory=film_en_dir, html=True), name="film_en")
+    preso_dir = ROOT / "preso"
+    if preso_dir.is_dir():
+        app.mount("/preso", StaticFiles(directory=preso_dir, html=True), name="preso")
 
     if dashboard_dist.is_dir():
         app.mount("/app", StaticFiles(directory=dashboard_dist, html=True), name="dashboard")

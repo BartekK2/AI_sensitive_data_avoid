@@ -1,116 +1,153 @@
 #sg-root {
   all: initial;
   font-family: "Segoe UI", system-ui, sans-serif;
+  color: #1c1915;
 }
 
 #sg-root * {
   box-sizing: border-box;
 }
 
-.sg-badge {
+#sg-root .sg-badge {
   position: fixed;
   right: 16px;
   bottom: 16px;
   z-index: 2147483646;
-  padding: 6px 10px;
+  padding: 6px 11px;
   border-radius: 999px;
-  background: #111827;
-  color: #e5e7eb;
+  border: 1px solid #e2d8c6;
+  background: #fbf7ef;
+  color: #6f675c;
   font-size: 12px;
   letter-spacing: 0.02em;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 10px 28px rgba(40, 28, 16, 0.12);
 }
 
-.sg-badge.sg-ok { background: #065f46; color: #ecfdf5; }
-.sg-badge.sg-redact { background: #92400e; color: #fffbeb; }
-.sg-badge.sg-block { background: #991b1b; color: #fef2f2; }
-.sg-badge.sg-warn { background: #1f2937; color: #fde68a; }
+#sg-root .sg-badge.sg-ok,
+#sg-root .sg-badge.sg-block {
+  border-color: transparent;
+  color: #2f5558;
+  background: linear-gradient(100deg, rgba(80, 138, 142, 0.38), rgba(175, 120, 162, 0.1)), #fbf7ef;
+}
 
-.sg-modal {
+#sg-root .sg-badge.sg-redact,
+#sg-root .sg-badge.sg-warn {
+  border-color: transparent;
+  color: #6c4a64;
+  background: linear-gradient(100deg, rgba(175, 120, 162, 0.32), rgba(175, 120, 162, 0.08)), #fbf7ef;
+}
+
+#sg-root .sg-modal {
   position: fixed;
   inset: 0;
   z-index: 2147483647;
   display: grid;
   place-items: center;
-  background: rgba(15, 23, 42, 0.52);
+  background: rgba(28, 25, 21, 0.38);
 }
 
-.sg-modal[hidden] {
+#sg-root .sg-modal[hidden] {
   display: none;
 }
 
-.sg-card {
-  width: min(520px, calc(100vw - 32px));
-  background: #0b1220;
-  color: #e5e7eb;
-  border: 1px solid #334155;
+#sg-root .sg-card {
+  width: min(480px, calc(100vw - 32px));
+  background: linear-gradient(180deg, #f7f1e6, #fbf7ef);
+  color: #1c1915;
+  border: 1px solid #e2d8c6;
   border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  padding: 20px 22px;
+  box-shadow: 0 16px 40px rgba(40, 28, 16, 0.16);
 }
 
-.sg-kicker {
-  color: #93c5fd;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
+#sg-root .wordmark {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: #1c1915;
 }
 
-.sg-card h2 {
+#sg-root .wordmark .ai {
+  background: linear-gradient(165deg, #508a8e 0%, #7d9a96 42%, #af78a2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+#sg-root .sg-kicker {
+  margin-bottom: 12px;
+}
+
+#sg-root .sg-card h2 {
   margin: 0 0 8px;
-  font-size: 20px;
-  color: #fff;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: #1c1915;
 }
 
-.sg-card p {
+#sg-root .sg-card p {
   margin: 0 0 12px;
   line-height: 1.45;
-  color: #cbd5e1;
+  color: #6f675c;
 }
 
-.sg-card ul {
+#sg-root .sg-card ul {
   margin: 0 0 12px;
   padding-left: 18px;
-  color: #fca5a5;
+  color: #6c4a64;
 }
 
-.sg-card pre {
+#sg-root .sg-card pre {
   margin: 0 0 16px;
   padding: 10px 12px;
-  background: #111827;
+  background: #f7f1e4;
+  border: 1px solid #e2d8c6;
   border-radius: 10px;
   white-space: pre-wrap;
   word-break: break-word;
-  color: #d1fae5;
+  color: #2a241c;
   font-size: 12px;
 }
 
-.sg-actions {
+#sg-root .sg-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
 }
 
-.sg-actions button {
-  border: 0;
+#sg-root .sg-actions button {
+  border: 1px solid #1c1915;
   border-radius: 10px;
   padding: 8px 12px;
-  background: #1f2937;
-  color: #f8fafc;
+  background: #1c1915;
+  color: #f7f1e6;
   cursor: pointer;
   font: inherit;
+  font-weight: 600;
 }
 
-.sg-actions button:hover {
-  background: #334155;
+#sg-root .sg-actions button:hover {
+  background: #3a332c;
 }
 
-.sg-actions .sg-danger {
-  background: #7f1d1d;
+#sg-root .sg-actions #sg-cancel,
+#sg-root .sg-actions .sg-danger {
+  background: transparent;
+  color: #1c1915;
+  border-color: #e2d8c6;
+  font-weight: 500;
 }
 
-.sg-actions .sg-danger:hover {
-  background: #991b1b;
+#sg-root .sg-actions .sg-danger {
+  color: #6c4a64;
+  border-color: #e3c9d6;
+}
+
+#sg-root .sg-actions #sg-cancel:hover,
+#sg-root .sg-actions .sg-danger:hover {
+  background: rgba(28, 22, 16, 0.05);
 }

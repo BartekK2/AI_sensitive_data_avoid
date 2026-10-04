@@ -59,10 +59,10 @@
     host.id = "sg-root";
     host.setAttribute("data-sg-ui", "1");
     host.innerHTML = `
-      <div class="sg-badge" id="sg-badge" hidden>sensitive-guard</div>
+      <div class="sg-badge" id="sg-badge" hidden>AegIs</div>
       <div class="sg-modal" id="sg-modal" hidden>
         <div class="sg-card">
-          <div class="sg-kicker">sensitive-guard · Laya</div>
+          <div class="sg-kicker"><span class="wordmark"><span class="ai">A</span>eg<span class="ai">I</span>s</span></div>
           <h2 id="sg-title">Wysyłka wstrzymana</h2>
           <p id="sg-lead"></p>
           <ul id="sg-entities"></ul>
@@ -92,7 +92,7 @@
     badge.hidden = false;
     badge.className = "sg-badge";
     if (!scan) {
-      badge.textContent = "guard · gotowy";
+      badge.textContent = "AegIs · gotowy";
       return;
     }
     if (scan.action === "pending") {
@@ -101,7 +101,7 @@
     }
     if (scan.error) {
       badge.classList.add("sg-warn");
-      badge.textContent = "guard · brak API";
+      badge.textContent = "AegIs · brak API";
       return;
     }
     if (scan.action === "block") {

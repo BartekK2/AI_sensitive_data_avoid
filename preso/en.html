@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AegIs — presentation</title>
+  <link rel="stylesheet" href="./preso.css" />
+</head>
+<body>
+
+<section class="slide" data-n="01 / 18">
+  <div class="center">
+    <p class="kicker">a control layer on the way out to AI</p>
+    <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+    <p class="sub">A local gateway between the employee (or an agent) and the model. The prompt does not leave the company until it has passed inspection.</p>
+  </div>
+</section>
+
+<section class="slide" data-n="02 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">contents</p>
+  <h2>What this deck covers</h2>
+  <ol class="agenda">
+    <li><em>01</em> The problem: AI at work and data that already leaks</li>
+    <li><em>02</em> Why DLP, proxies and training are not enough</li>
+    <li><em>03</em> What AegIs is and where it sits in the traffic</li>
+    <li><em>04</em> How a decision is made: allow / redact / block</li>
+    <li><em>05</em> Categories, confidence, roles and people</li>
+    <li><em>06</em> The incident: who, what, when, why</li>
+    <li><em>07</em> The dashboard, policy changes with no restart</li>
+    <li><em>08</em> How to run it, and what we refuse to do</li>
+  </ol>
+</section>
+
+<section class="slide" data-n="03 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">problem</p>
+  <h2>People paste their work into chat.</h2>
+  <div class="statline">
+    <p class="pct">38%<small>at work, into chat</small></p>
+    <div>
+      <p class="lede">Companies have let ChatGPT, Copilot and agents into the working day. The employee is not “attacking the system”. They are in a hurry: review this commit, summarise this contract, draft a mail to a client.</p>
+      <p class="lede tight">The message box gets whatever they are sitting on — code, an HR sheet, a CRM export, a folder with <code>.env</code>. The model is outside the firm. Once the prompt leaves, you cannot pull it back. The vendor sees it, logs it, sometimes trains on it, sometimes surfaces it in another thread.</p>
+      <p class="lede tight">This is not a theoretical GDPR risk. It is a habit. AegIs assumes you will not train the habit away — you have to stop the packet <em>before</em> it leaves the machine.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-n="04 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">scenario</p>
+  <h2>One pasted folder.</h2>
+  <p class="lede">Jake on frontend asks ChatGPT to review a commit before he pushes. The model says “paste the diff or drop the files”. Jake drops the whole directory. He does not want to redact.</p>
+  <div class="pills">
+    <span class="bad">.env</span>
+    <span class="bad">SSN_Cole.txt</span>
+    <span class="bad">payroll_march.xlsx</span>
+  </div>
+  <div class="cols cols-3" style="margin-top:22px">
+    <article class="card">
+      <span class="tag">secret</span>
+      <h3>Keys in .env</h3>
+      <p>Database token, Stripe, Slack. Once pasted, it lives in chat history. Rotation is already incident response.</p>
+    </article>
+    <article class="card">
+      <span class="tag">person</span>
+      <h3>Identifiers</h3>
+      <p>National ID, tax number, email, phone. Under GDPR that is disclosing personal data to a party outside the processing agreement.</p>
+    </article>
+    <article class="card pink">
+      <span class="tag">company</span>
+      <h3>Payroll</h3>
+      <p>A salary sheet is not “context for a code review”. It is an HR document sitting in someone else’s model.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="05 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">the gap</p>
+  <h2>Why the tools you already bought miss this</h2>
+  <div class="cols cols-2">
+    <article class="card">
+      <h3>DLP on mail and USB</h3>
+      <p>It sees an Outlook attachment and a copy to a stick. It does not see the composer on chatgpt.com, claude.ai or an agent window. The traffic is HTTPS from the user’s browser, often a personal account.</p>
+    </article>
+    <article class="card">
+      <h3>A proxy without a body</h3>
+      <p>A plain HTTP proxy on HTTPS sees the host (SNI), not the prompt. Reading the body means a corporate CA and MITM — and you still will not break pinning on consumer chats. That is the wrong fight.</p>
+    </article>
+    <article class="card">
+      <h3>Training and a policy PDF</h3>
+      <p>People know the ban. Then they have a deadline. One “here’s the whole folder” walks around a rule nobody enforces at the moment of Enter.</p>
+    </article>
+    <article class="card">
+      <h3>Agents outside the browser</h3>
+      <p>SDKs, cron, LangChain, a CI script call the API directly. There is no extension there. They need a gateway on <code>OPENAI_BASE_URL</code> or a company proxy — the same decision engine.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="06 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">definition</p>
+  <h2>AegIs is a gateway, not another chatbot.</h2>
+  <p class="lede">It sits between whoever writes (a person or a program) and the model. Every prompt is checked locally. Only the verdict decides whether anything goes out.</p>
+  <div class="steps">
+    <article class="card step">
+      <small>01 agent</small>
+      <b>employee / script</b>
+      <span>Types in ChatGPT or Claude, or calls the API from code.</span>
+    </article>
+    <article class="card step gate">
+      <small>02 AegIs</small>
+      <b>gateway</b>
+      <span>On this machine or in the company process: finder, classifier, rules, role. Nothing is “uploaded to the cloud to be checked”.</span>
+    </article>
+    <article class="card step out">
+      <small>03 model</small>
+      <b>gets it, or nothing</b>
+      <span>Allow — original. Redact — masks. Block — the model never sees the prompt, and the dashboard gets an incident.</span>
+    </article>
+  </div>
+  <p class="footnote">ChatGPT, Copilot and the agent stay. We do not move people into a “safe company chat”. They keep their tools. The leak does not.</p>
+</section>
+
+<section class="slide" data-n="07 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">entry points</p>
+  <h2>Three doors, one engine.</h2>
+  <p class="lede tight">Browser, SDK or a background job — the verdict, the policy and the log are the same.</p>
+  <div class="cols cols-3">
+    <article class="card">
+      <span class="tag">browser</span>
+      <h3>Chrome extension</h3>
+      <p>Reads the composer on ChatGPT, Claude, Gemini, Copilot, Perplexity, Grok, DeepSeek and others. Before Enter / Send it calls <code>POST /v1/scan</code>. It can stop the send and show what it blocked.</p>
+    </article>
+    <article class="card teal">
+      <span class="tag">agents / SDK</span>
+      <h3>API gateway</h3>
+      <p>The app sets <code>OPENAI_BASE_URL</code> to <code>http://127.0.0.1:8080/net/openai/v1</code>. Same idea for Anthropic and Ollama. Helios scans the prompt JSON, then — if allowed — forwards upstream.</p>
+    </article>
+    <article class="card">
+      <span class="tag">processes</span>
+      <h3>HTTP proxy :8888</h3>
+      <p>For tools that honour <code>HTTP_PROXY</code>. On HTTP you see the body. On HTTPS without a CA — the host. That is why AI agents should use BASE_URL, not “MITM the world”.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="08 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">verdict</p>
+  <h2>Three ways out of the gate</h2>
+  <div class="cols cols-3">
+    <article class="card">
+      <span class="tag">allow</span>
+      <h3>Pass</h3>
+      <p>No sensitive spans, or the role / whitelist says this person may send this. The model gets the original. The audit line still exists.</p>
+    </article>
+    <article class="card soft">
+      <span class="tag">redact</span>
+      <h3>Redact</h3>
+      <p>IDs, email, card, phone become masks (<code>[PESEL]</code>, <code>[EMAIL]</code>). The rest of the prompt goes. The employee sees what was cut and can fix it and try again.</p>
+    </article>
+    <article class="card pink">
+      <span class="tag">block</span>
+      <h3>Stop</h3>
+      <p>Secrets, critical identifiers, jailbreak. Stop in the UI, <code>403</code> on the API. The model gets nothing. The dashboard gets who, what, when, which control.</p>
+    </article>
+  </div>
+  <p class="footnote">Default preset is <strong>balanced</strong>: <code>government_id</code>, <code>financial</code>, <code>credentials</code> and <code>attack</code> block; health redacts. An admin changes that with a slider, not a deploy.</p>
+</section>
+
+<section class="slide" data-n="09 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">detection</p>
+  <h2>How we know it is an ID number</h2>
+  <div class="rows">
+    <div class="row"><b>Finder</b><p>Pulls candidate spans with the same regex families as the Laya <code>pii</code> training set, plus PESEL, NIP, REGON, IBAN, API keys, tokens, passwords.</p></div>
+    <div class="row"><b>Laya · pii</b><p>An open decision classifier (Apache-2.0 weights). 22 labels: given name, phone, card, passport… It gets a span and a closed answer list, and returns calibrated probabilities. It does not generate text and does not send content to a closed API.</p></div>
+    <div class="row"><b>Hard rules</b><p>A valid PESEL / NIP, card Luhn, IBAN and secrets stay even when the classifier says <code>not pii</code>. Checksums are not “the model’s opinion”.</p></div>
+    <div class="row"><b>Signatures</b><p>Jailbreak, prompt injection, exfiltration, tool abuse — an OWASP-LLM-style catalogue, CERT import, toggled per control.</p></div>
+    <div class="row"><b>Heuristic</b><p>Without downloading weights (~850 MB) the gate still boots: <code>backend=heuristic</code>. Semantic controls show as off; the rest works. On a judge’s laptop that is the same product.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-n="10 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">policy · categories</p>
+  <h2>Admin decides what counts — and how sure.</h2>
+  <p class="lede tight">A category is not a frozen list from a policy PDF. It is a label with a risk, an action and a confidence floor. Laya scores the span; below the slider, the category does not fire.</p>
+  <table class="grid">
+    <tr><th>Category</th><th>Examples</th><th>Default action</th></tr>
+    <tr><td><b>government_id</b></td><td>national ID, tax number, passport</td><td>block</td></tr>
+    <tr><td><b>credentials</b></td><td>API key, token, password, private key</td><td>block</td></tr>
+    <tr><td><b>financial</b></td><td>card (Luhn), IBAN</td><td>block</td></tr>
+    <tr><td><b>attack</b></td><td>jailbreak, injection, exfiltration</td><td>block</td></tr>
+    <tr><td><b>health</b></td><td>medical history, referrals</td><td>redact</td></tr>
+    <tr><td><b>contact / person_name</b></td><td>email, phone, name</td><td>depends on destination and role</td></tr>
+  </table>
+  <p class="footnote">Custom categories are added in the panel. Presets <code>strict | balanced | permissive</code>. Per-destination overrides: localhost is not chatgpt.com. <code>policy.json</code> reloads on mtime — no process restart.</p>
+</section>
+
+<section class="slide" data-n="11 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">policy · roles</p>
+  <h2>A role is an exception, not a job title.</h2>
+  <p class="lede tight">A developer, a doctor and an accountant leak different things. One global block either annoys everyone or catches nothing. A role says: <em>this person may send these categories</em>.</p>
+  <table class="grid">
+    <tr><th>Role</th><th>Exceptions</th><th>Why</th></tr>
+    <tr><td><b>Employee</b></td><td>none</td><td>Any PII excursion lands with a manager. Default for a new person.</td></tr>
+    <tr><td><b>HR</b></td><td>name, contact, demographic</td><td>Recruiting has to paste a candidate’s name and phone. National ID still no.</td></tr>
+    <tr><td><b>Finance</b></td><td>financial</td><td>A vendor IBAN or a test card is not an incident. An API key still is.</td></tr>
+    <tr><td><b>Manager</b></td><td>everything + override</td><td>Sees the dashboard, can override a block when it is genuinely needed.</td></tr>
+  </table>
+  <p class="footnote">The same category can block a developer and allow an accountant. Roles are edited in the panel; exceptions are category checkboxes, not a new deploy.</p>
+</section>
+
+<section class="slide" data-n="12 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">policy · people</p>
+  <h2>Assignment applies on the next message.</h2>
+  <div class="cols cols-2">
+    <article class="card">
+      <h3>People page</h3>
+      <p>Each person has an email, a team and a <code>role_id</code>. The extension and the gateway know who is typing (account / <code>X-Employee-Id</code>). The verdict is computed against <em>that</em> role, not “everyone in the company”.</p>
+    </article>
+    <article class="card teal">
+      <h3>No restart</h3>
+      <p>Move Magda from Employee to HR. You do not reload the extension, restart the gate, or rebuild a Docker image. The next Enter already uses the new policy. The banner in the panel shows the new version.</p>
+    </article>
+    <article class="card">
+      <h3>Unknown sender</h3>
+      <p>Someone arrives from an account that is not on the list. They land in the “unknown” queue — they do not vanish in the logs and they do not inherit a manager’s silent exceptions.</p>
+    </article>
+    <article class="card pink">
+      <h3>Whitelist</h3>
+      <p>Separate no-alert exceptions: a test address, a company account number, a phrase that is a false positive. The whitelist does not switch the rest of the gate off.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="13 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">outcome</p>
+  <h2>A block with no incident is theatre.</h2>
+  <p class="lede tight">When AegIs stops a prompt, the dashboard gets a record. Not “some alert”. Something you can read and act on.</p>
+  <div class="cols cols-2">
+    <article class="card">
+      <h3>What is in the record</h3>
+      <ul>
+        <li>who — person, email, team, role</li>
+        <li>where — chatgpt.com, OpenAI API, agent, proxy</li>
+        <li>what — categories and labels, a masked snippet</li>
+        <li>why — which controls fired, confidence, action</li>
+        <li>when — timestamp and gate latency</li>
+      </ul>
+    </article>
+    <article class="card">
+      <h3>What a manager does with it</h3>
+      <ul>
+        <li>a queue with filters, grouped repeats (5‑minute dedupe)</li>
+        <li>bulk actions, assignment, a note, a runbook</li>
+        <li>CSV / JSONL export for audit</li>
+        <li>values stay masked; <code>reveal</code> itself is written to the log</li>
+      </ul>
+    </article>
+  </div>
+  <p class="footnote">This is a trail for GDPR and for a conversation with a human (“you pasted payroll”), not a dump of the whole chat. The content never reached the model — and it does not have to reach a cloud SIEM just to exist.</p>
+</section>
+
+<section class="slide" data-n="14 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">dashboard</p>
+  <h2>Anything a judge can change is visible immediately.</h2>
+  <div class="cols cols-2">
+    <article class="card">
+      <span class="tag">monitor</span>
+      <h3>Posture, incidents, audit</h3>
+      <p>A 0–100 score, “today” cards, 24h bars, top people and destinations. The incident queue. An append-only log. Telemetry: p50/p95, RPM, backend split, upstream errors. “Check a prompt” hits the same <code>/v1/scan</code>.</p>
+    </article>
+    <article class="card">
+      <span class="tag">govern</span>
+      <h3>Controls and policy</h3>
+      <p>Toggle checksums, the classifier, signatures, roles, whitelist. A threshold slider. Action per category and per destination. Presets. History of <code>policy.json</code>. Roles, categories, people — edited in place.</p>
+    </article>
+    <article class="card teal">
+      <span class="tag">live</span>
+      <h3>Next request, not a restart</h3>
+      <p>Change the threshold, disable a control or assign a role and a “Policy reloaded (version N)” banner appears. <code>GET /health</code> returns the new version. Demo chat walks the full path through <code>/net/openai</code>.</p>
+    </article>
+    <article class="card">
+      <span class="tag">degradation</span>
+      <h3>It still boots without Laya</h3>
+      <p>No weights = heuristic + a banner. Deterministic PESEL / NIP / IBAN / Luhn / secrets / signatures stay. Semantics go grey. The UI does not pretend a model is watching.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="15 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">local</p>
+  <h2>Stop on the machine. In ~28 ms.</h2>
+  <div class="cols cols-13">
+    <div>
+      <p class="lede">Classification is not a round-trip to the model vendor. The finder and hard rules are cheap. Laya, if enabled, runs locally. Order of magnitude: tens of milliseconds, not seconds of “please wait, we are scanning in the cloud”.</p>
+      <p class="lede tight">That matters on Enter in a chat and for an agent that is already waiting on tokens. The gate cannot be a second model.</p>
+      <p class="lede tight">If the verdict is block, the packet dies here. There is no “send it and do incident response later”.</p>
+    </div>
+    <aside class="card teal">
+      <span class="tag">order</span>
+      <h3>One request</h3>
+      <p>model allow-list → rate limit → budget → loop guard → finder + classifier → signatures → patterns → disabled controls → whitelist / role → per-category action → redaction → incident → audit + telemetry.</p>
+    </aside>
+  </div>
+</section>
+
+<section class="slide" data-n="16 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">limits</p>
+  <h2>What we deliberately do not do</h2>
+  <div class="cols cols-2">
+    <article class="card">
+      <h3>We do not break consumer chats</h3>
+      <p>No MITM on Messenger, WhatsApp, pinned Cursor TLS. There is no <code>OPENAI_BASE_URL</code> there. For AI chats in the browser there is an extension that reads the field, not the whole TLS session.</p>
+    </article>
+    <article class="card">
+      <h3>We are not DLP for everything</h3>
+      <p>We do not replace antivirus, disk encryption or mail DLP. We are a layer on the <em>way out to a model</em>. The rest of the stack stays.</p>
+    </article>
+    <article class="card">
+      <h3>We do not pretend the cloud classifies better</h3>
+      <p>Sending the prompt to a third-party API “to check if it is sensitive” is the same leak. AegIs has to work without that step.</p>
+    </article>
+    <article class="card pink">
+      <h3>We do not hide degradation</h3>
+      <p>Without Laya you see heuristic. Without an upstream key the gate still blocks first — a vendor 502 does not hide our 403.</p>
+    </article>
+  </div>
+</section>
+
+<section class="slide" data-n="17 / 18">
+  <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+  <p class="kicker">start</p>
+  <h2>After clone — one command.</h2>
+  <p class="lede tight">On PATH: Python 3.10+ and Node 18+. The script does the rest: venv, dependencies, dashboard build, gate and proxy.</p>
+  <div class="cols cols-2">
+    <article class="card teal">
+      <span class="tag">install</span>
+      <h3><code>python start.py</code></h3>
+      <p>Windows: <code>py start.py</code> or <code>.\start.ps1</code>. macOS / Linux: <code>./start.sh</code>. Heuristic by default (fast start). <code>--with-laya</code> pulls the model.</p>
+    </article>
+    <article class="card">
+      <span class="tag">addresses</span>
+      <h3>What comes up</h3>
+      <p>Dashboard <code>http://127.0.0.1:8080/app</code> · demo chat <code>/demo</code> · API <code>/v1/scan</code> · gateway <code>/net/openai/v1</code> · proxy <code>:8888</code>.</p>
+    </article>
+  </div>
+  <p class="lede" style="margin-top:22px">Extension: Chrome → <code>chrome://extensions</code> → developer mode → Load unpacked → the <code>extension/</code> folder. Then ChatGPT / Claude / Gemini — a marker in the corner, and Enter on a national ID does not leave.</p>
+</section>
+
+<section class="slide" data-n="18 / 18">
+  <div class="center">
+    <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+    <p class="sub">A local gateway. The prompt does not leave until it has passed inspection. Policy per category and per role. The incident says who and what — before the model ever sees a thing.</p>
+  </div>
+</section>
+
+</body>
+</html>

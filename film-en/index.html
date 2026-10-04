@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AegIs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560;9..144,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../film/film.css" />
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#508a8e"/>
+        <stop offset="1" stop-color="#af78a2"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div id="stage">
+    <div class="paper"></div>
+    <div class="grain"></div>
+    <div class="vignette"></div>
+
+    <header class="chrome">
+      <p class="logo"><span class="ai">A</span>eg<span class="ai">I</span>s</p>
+    </header>
+
+    <div id="viewport">
+      <div id="world">
+        <div class="floor"></div>
+        <div class="ribbon"></div>
+
+        <section class="scene" data-from="0" data-to="4.04" id="s-title">
+          <div class="title-copy">
+            <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+          </div>
+          <div class="cast">
+            <img class="art" src="../film/art/working-late.svg" alt="" />
+          </div>
+        </section>
+
+        <section class="scene" data-from="4.04" data-to="8.98" id="s-flow">
+          <h2>Agent → gate → model</h2>
+          <div class="track">
+            <div class="station" id="st-agent"><small>01 agent</small><b>employee</b><span>writes a prompt</span></div>
+            <div class="rail"></div>
+            <div class="station station-gate" id="st-gate"><small>02 AegIs</small><b>gate</b><span>checks</span></div>
+            <div class="rail dim"></div>
+            <div class="station station-out" id="st-model"><small>03 model</small><b>ChatGPT</b><span>gets it or nothing</span></div>
+            <div class="packet" id="packet">data</div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="8.98" data-to="13.94" id="s-problem">
+          <h2>One pasted folder.</h2>
+          <div class="window leak-win">
+            <header><i></i><i></i><i></i><b>chatgpt.com</b></header>
+            <div class="thread">
+              <div class="msg me">
+                <small>Jake · frontend</small>
+                <p>Hey, can you review this commit before I push? I'm in a rush.</p>
+              </div>
+              <div class="msg bot">
+                <small>ChatGPT</small>
+                <p>Sure. Paste the diff or drop the files and I'll look.</p>
+              </div>
+              <div class="msg me leak">
+                <small>Jake · frontend</small>
+                <p>Here's the whole folder. I don't want to redact.</p>
+                <div class="files">
+                  <span>.env</span>
+                  <span>SSN_Cole.txt</span>
+                  <span>payroll_march.xlsx</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="13.94" data-to="22.5" id="s-stat">
+          <div class="stat-grid">
+            <div class="ring-wrap">
+              <svg viewBox="0 0 220 220">
+                <circle class="ring-bg" cx="110" cy="110" r="96"/>
+                <circle class="ring" id="ring" cx="110" cy="110" r="96"/>
+              </svg>
+              <p class="giant" id="pct">0%</p>
+            </div>
+            <div>
+              <p class="lead fat">at work, <em>into chat</em></p>
+              <div class="dots" id="dots"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="22.5" data-to="30.82" id="s-check">
+          <h2>Stop on the machine.</h2>
+          <div class="track check-track">
+            <div class="station" id="ck-a"><small>01</small><b>employee</b><span>writes a prompt</span></div>
+            <div class="rail"></div>
+            <div class="station station-gate" id="ck-g"><small>02 AegIs</small><b>checks</b><span>on this machine</span></div>
+            <div class="rail dim"></div>
+            <div class="station station-out dim" id="ck-m"><small>03 model</small><b>doesn't get it</b><span>if it's not allowed</span></div>
+            <div class="packet" id="token">prompt</div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="30.82" data-to="37.16" id="s-kinds">
+          <h2>What stays in.</h2>
+          <div class="kinds">
+            <article><i>01</i><b>personal data</b><span>names, IDs, phones</span></article>
+            <article><i>02</i><b>source code</b><span>repos and secrets</span></article>
+            <article><i>03</i><b>company secrets</b><span>payroll, contracts, plans</span></article>
+            <article class="warn"><i>04</i><b>jailbreak</b><span>attack on the agent</span></article>
+          </div>
+        </section>
+
+        <section class="scene" data-from="37.16" data-to="50.58" id="s-speed">
+          <div class="speed-left">
+            <p class="giant"><b id="ms">160</b><small>ms</small></p>
+          </div>
+          <div class="wave" id="wave"></div>
+        </section>
+
+        <section class="scene" data-from="50.58" data-to="66.06" id="s-roles">
+          <h2>Who leaks what.</h2>
+          <div class="roles">
+            <article>
+              <div class="pic"><img src="../film/art/programmer.svg" alt="" /></div>
+              <small>developer</small>
+              <b>API keys</b>
+              <em class="no">leak</em>
+            </article>
+            <article>
+              <div class="pic"><img src="../film/art/doctor.svg" alt="" /></div>
+              <small>doctor</small>
+              <b>medical history</b>
+              <em class="no">leak</em>
+            </article>
+            <article>
+              <div class="pic"><img src="../film/art/working.svg" alt="" /></div>
+              <small>accountant</small>
+              <b>pay stubs</b>
+              <em class="no">leak</em>
+            </article>
+          </div>
+        </section>
+
+        <section class="scene" data-from="66.06" data-to="72.64" id="s-tools">
+          <h2>Chat stays.</h2>
+          <img class="art art-wide" src="../film/art/in-the-office.svg" alt="" />
+          <div class="tools-row"><span>ChatGPT</span><span>agent</span><span>browser chat</span></div>
+        </section>
+
+        <section class="scene" data-from="72.64" data-to="77.86" id="s-panel">
+          <h2>Who. What. When.</h2>
+          <img class="art art-wide" src="../film/art/dashboard.svg" alt="" />
+          <div class="dash">
+            <aside>
+              <b>AegIs</b>
+              <u>overview</u><u>people</u><u class="on">incidents</u><u>roles</u><u>categories</u>
+            </aside>
+            <div class="dash-main">
+              <div class="inc ok"><b>permissions</b><span>who can send what</span></div>
+              <div class="inc"><b>whitelist</b><span>exceptions, no alert</span></div>
+              <div class="inc hit"><b>incident</b><span>who, what, when</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="scene" data-from="77.86" data-to="104.12" id="s-rec">
+          <div class="clip-frame">
+            <video id="rec-vid" muted playsinline></video>
+          </div>
+        </section>
+
+        <section class="scene" data-from="104.12" data-to="108" id="s-end">
+          <h1 class="mark"><span class="ai">A</span>eg<span class="ai">I</span>s</h1>
+        </section>
+      </div>
+    </div>
+
+    <div id="kara">
+      <i id="ball"></i>
+      <p id="words"></p>
+    </div>
+    <button id="play" type="button">Play</button>
+  </div>
+
+  <audio id="voice" src="../eng_voice.mp3" preload="auto"></audio>
+  <script src="./film.js?v=clips3"></script>
+</body>
+</html>
